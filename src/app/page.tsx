@@ -58,7 +58,7 @@ const FEATURES = [
   { icon: NotebookPen, title: "Trade journal", text: "Log every trade with strategy, emotions and screenshots. Watch your win rate, profit factor and best strategies improve." },
   { icon: Users, title: "Built for two", text: "Allan and Alex share the workspace: watchlists, charts, positions and activity feed — everything in sync." },
   { icon: Bell, title: "Smart alerts", text: "Price levels, RSI thresholds, EMA crosses. Get notified the moment your setup triggers — day or night." },
-  { icon: ShieldCheck, title: "Demo first", text: "A clearly-labeled simulation environment with an abstraction layer ready to connect real market data when you are." },
+  { icon: ShieldCheck, title: "Paper trading", text: "Trade with real live market data on a simulated account — the market is real, the money is not." },
 ];
 
 const STEPS = [
@@ -105,7 +105,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-4 text-center">
           <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-raised/60 px-3.5 py-1.5 text-[11px] text-secondary backdrop-blur animate-fade-in">
             <Sparkles className="size-3 text-warn" />
-            A shared trading workspace for two people — paper trading, live demo data
+            A shared trading workspace for two people — paper trading, live market data
           </div>
           <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl animate-slide-up">
             Your Market.
@@ -181,7 +181,7 @@ export default function LandingPage() {
               <Card className="p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-xs font-semibold text-secondary">Market Overview</p>
-                  <span className="rounded-md bg-up-soft px-2 py-0.5 text-[10px] font-medium text-up">Live · Demo</span>
+                  <span className="rounded-md bg-up-soft px-2 py-0.5 text-[10px] font-medium text-up">Live</span>
                 </div>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 md:grid-cols-3">
                   {mockData.map((m) => (
@@ -405,7 +405,7 @@ export default function LandingPage() {
             <span className="text-[13px] font-semibold">Nex<span className="text-gradient">Trade</span></span>
           </div>
           <p className="text-[11px] text-muted">
-            Simulation platform · Demo data · Not financial advice · No real transactions
+            Simulation platform · Live market data · Not financial advice · No real transactions
           </p>
           <p className="text-[11px] text-muted">© 2026 NexTrade Workspace</p>
         </div>

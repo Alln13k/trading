@@ -21,7 +21,7 @@ import { useSettingsStore, useCurrentUser } from "@/lib/stores/settings-store";
 import { useUiStore } from "@/lib/stores/ui-store";
 import { useToastStore } from "@/lib/stores/toast-store";
 import { useActivityStore } from "@/lib/stores/activity-store";
-import { useLiveQuotes } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
 import { cn, formatPrice, formatPercent, formatCompact, uid } from "@/lib/utils";
 import { Segmented } from "@/components/ui/segmented";
 import { Button } from "@/components/ui/button";
@@ -112,7 +112,12 @@ function ChartsInner() {
   const currentUser = useCurrentUser();
 
   const meta2 = marketData.getSymbol(symbol);
-  const spark = useMemo(() => marketData.getSparkline(symbol, 40), [symbol]);
+  const marketVersion = useMarketVersion();
+  const spark = useMemo(
+    () => marketData.getSparkline(symbol, 40),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [symbol, marketVersion]
+  );
 
   const commitDrawing = (d: Drawing) => {
     setDrawings((prev) => {

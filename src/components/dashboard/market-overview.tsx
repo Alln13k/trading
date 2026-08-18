@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { DEFAULT_MARKET_SYMBOLS } from "@/lib/data/mockProvider";
 import { marketData } from "@/lib/data/provider";
-import { useLiveQuotes } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
 import { cn, formatPercent, formatPrice } from "@/lib/utils";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -14,7 +15,16 @@ import { Badge } from "@/components/ui/badge";
 export function MarketOverview({ ready }: { ready: boolean }) {
   const router = useRouter();
   const quotes = useLiveQuotes(DEFAULT_MARKET_SYMBOLS);
-  const sparks = DEFAULT_MARKET_SYMBOLS.map((s) => marketData.getSparkline(s, 24));
+  const marketVersion = useMarketVersion();
+  const sparks = useMemo(
+    () => DEFAULT_MARKET_SYMBOLS.map((s) => marketData.getSparkline(s, 24)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [marketVersion]
+  );
+
+  useEffect(() => {
+    for (const s of DEFAULT_MARKET_SYMBOLS) void marketData.getSparklineAsync?.(s, 24);
+  }, []);
 
   if (!ready) {
     return (

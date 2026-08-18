@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Quote } from "@/lib/types";
 import { marketData } from "@/lib/data/provider";
+import { marketEvents } from "@/lib/data/marketEvents";
 import { useAlertsStore } from "@/lib/stores/alerts-store";
 import { usePositionsStore } from "@/lib/stores/positions-store";
 import { useSettingsStore } from "@/lib/stores/settings-store";
@@ -10,6 +11,12 @@ import { useToastStore } from "@/lib/stores/toast-store";
 import { useUiStore } from "@/lib/stores/ui-store";
 import { useActivityStore } from "@/lib/stores/activity-store";
 import { useCurrentUser } from "@/lib/stores/settings-store";
+
+export function useMarketVersion() {
+  const [version, setVersion] = useState(0);
+  useEffect(() => marketEvents.subscribe(() => setVersion((v) => v + 1)), []);
+  return version;
+}
 
 export function useLiveQuotes(symbols: string[], enabled = true) {
   const [quotes, setQuotes] = useState<Map<string, Quote>>(new Map());
@@ -25,8 +32,8 @@ export function useLiveQuotes(symbols: string[], enabled = true) {
   const lastSymbols = useRef("");
 
   useEffect(() => {
-    const fetchQuotes = () => {
-      const map = marketData.getQuotes(symbols);
+    const fetchQuotes = async () => {
+      const map = (await marketData.getQuotesAsync?.(symbols)) ?? marketData.getQuotes(symbols);
       setQuotes(map);
       setLastUpdate(Date.now());
       refreshPrices(map);
@@ -53,10 +60,10 @@ export function useLiveQuotes(symbols: string[], enabled = true) {
     };
     if (symbols.join(",") !== lastSymbols.current) {
       lastSymbols.current = symbols.join(",");
-      fetchQuotes();
+      void fetchQuotes();
     }
     if (!autoRefresh) return;
-    fetchQuotes();
+    void fetchQuotes();
     const id = setInterval(fetchQuotes, Math.max(2, intervalSec) * 1000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps

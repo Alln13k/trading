@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Newspaper, Clock } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
@@ -29,12 +29,16 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [news, setNews] = useState<NewsItem[]>([]);
 
-  useMemo(() => {
-    const t = setTimeout(() => {
-      setNews(marketData.getNews());
+  useEffect(() => {
+    let alive = true;
+    marketData.getNewsAsync?.().then((items) => {
+      if (!alive) return;
+      setNews(items);
       setLoading(false);
-    }, 400);
-    return () => clearTimeout(t);
+    });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const filtered = category === "All" ? news : news.filter((n) => n.category === category);
@@ -43,7 +47,7 @@ export default function NewsPage() {
     <div className="animate-fade-in">
       <PageHeader
         title="News"
-        description="Curated financial headlines — demo feed with real-world themes. Follow the story behind the move."
+        description="Curated financial headlines — live from Yahoo Finance. Follow the story behind the move."
       />
 
       <Tabs

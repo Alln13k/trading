@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   TrendingUp,
@@ -13,7 +13,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
-import { useLiveQuotes } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
 import { useUiStore } from "@/lib/stores/ui-store";
 import {
   rsi,
@@ -53,8 +53,17 @@ export default function AnalysisPage() {
   const meta = marketData.getSymbol(symbol);
   const quotes = useLiveQuotes([symbol]);
   const quote = quotes.get(symbol);
+  const marketVersion = useMarketVersion();
 
-  const candles = useMemo(() => marketData.getCandles(symbol, "1D", 220), [symbol]);
+  useEffect(() => {
+    void marketData.getCandlesAsync?.(symbol, "1D", 220);
+  }, [symbol]);
+
+  const candles = useMemo(
+    () => marketData.getCandles(symbol, "1D", 220),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [symbol, marketVersion]
+  );
 
   const analysis = useMemo(() => {
     if (candles.length < 60) return null;
@@ -351,7 +360,7 @@ export default function AnalysisPage() {
             <b className="text-warn">Not financial advice.</b> This analysis is generated
             automatically from historical prices as an educational aid. Markets can move
             against every indicator — always manage risk with stop losses and position
-            sizing. Demo environment: no real trades are placed.
+            sizing. Paper trading only: no real trades are placed.
           </p>
         </CardContent>
       </Card>

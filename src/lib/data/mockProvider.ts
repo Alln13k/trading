@@ -22,6 +22,14 @@ export interface MarketDataProvider {
   getByCategory(category: SymbolMeta["category"]): SymbolMeta[];
   getNews(): NewsItem[];
   getEconomicCalendar(): EconomicEvent[];
+  // Optional async accessors — live providers implement these; mock defaults
+  // to the sync implementations.
+  getQuotesAsync?(symbols: string[]): Promise<Map<string, Quote>>;
+  getCandlesAsync?(symbol: string, timeframe: Timeframe, count?: number): Promise<Candle[]>;
+  getSparklineAsync?(symbol: string, points?: number): Promise<number[]>;
+  getNewsAsync?(): Promise<NewsItem[]>;
+  getEconomicCalendarAsync?(): Promise<EconomicEvent[]>;
+  hasLiveCandles?(symbol: string, timeframe: Timeframe): boolean;
 }
 
 const HOUR = 3600_000;
@@ -314,6 +322,26 @@ export class MockMarketDataProvider implements MarketDataProvider {
 
   getEconomicCalendar() {
     return calendarEvents();
+  }
+
+  async getQuotesAsync(symbols: string[]): Promise<Map<string, Quote>> {
+    return this.getQuotes(symbols);
+  }
+
+  async getCandlesAsync(symbol: string, timeframe: Timeframe, count = 400): Promise<Candle[]> {
+    return this.getCandles(symbol, timeframe, count);
+  }
+
+  async getSparklineAsync(symbol: string, points = 28): Promise<number[]> {
+    return this.getSparkline(symbol, points);
+  }
+
+  async getNewsAsync(): Promise<NewsItem[]> {
+    return this.getNews();
+  }
+
+  async getEconomicCalendarAsync(): Promise<EconomicEvent[]> {
+    return this.getEconomicCalendar();
   }
 }
 

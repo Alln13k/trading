@@ -204,7 +204,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Portfolio equity</CardTitle>
-              <CardDescription>Last 30 days · demo data</CardDescription>
+              <CardDescription>Last 30 days · portfolio performance</CardDescription>
             </CardHeader>
             <CardContent>
               {!ready ? (
@@ -408,7 +408,7 @@ export default function DashboardPage() {
 
       {/* Disclaimer */}
       <p className="text-center text-[11px] text-muted">
-        NexTrade runs on simulated demo data — nothing here is real market data or financial advice.
+        NexTrade uses live market data for prices and charts — trading is paper-only and this is not financial advice.
       </p>
     </div>
   );

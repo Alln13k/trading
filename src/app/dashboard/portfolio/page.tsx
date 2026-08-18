@@ -182,7 +182,7 @@ export default function PortfolioPage() {
     <div className="animate-fade-in space-y-5">
       <PageHeader
         title="Portfolio"
-        description="Your virtual portfolio — all numbers move with live demo quotes."
+        description="Your virtual portfolio — all numbers move with live market quotes."
         actions={
           <Button onClick={() => setAddOpen(true)}>
             <Plus className="size-3.5" /> Add asset
@@ -459,7 +459,7 @@ export default function PortfolioPage() {
         open={!!deleteSymbol}
         onClose={() => setDeleteSymbol(null)}
         title={`Remove ${deleteSymbol ?? ""}?`}
-        description="The asset will be sold at the current demo price and the proceeds added to your cash balance."
+        description="The asset will be sold at the current live price and the proceeds added to your cash balance."
         confirmLabel="Sell & remove"
         danger
         onConfirm={confirmDelete}

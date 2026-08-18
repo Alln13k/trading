@@ -146,7 +146,7 @@ export function Sidebar() {
           {!collapsed && (
             <span className="text-[11px] text-secondary">
               Live feed
-              <span className="block text-[10px] text-muted">Demo data</span>
+              <span className="block text-[10px] text-muted">Real market data</span>
             </span>
           )}
         </div>

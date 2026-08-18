@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Star, ListPlus, X, Pencil } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
-import { useLiveQuotes } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useEffect } from "react";
 import { useWatchlistStore } from "@/lib/stores/watchlist-store";
 import { useToastStore } from "@/lib/stores/toast-store";
 import { useActivityStore } from "@/lib/stores/activity-store";
@@ -45,10 +46,15 @@ export default function WatchlistPage() {
   const symbols = active?.symbols ?? [];
   const symbolsKey = symbols.join(",");
   const quotes = useLiveQuotes(symbols);
+  const marketVersion = useMarketVersion();
   const sparkCache = useMemo(() => {
     const m = new Map<string, number[]>();
     for (const s of symbols) m.set(s, marketData.getSparkline(s, 24));
     return m;
+  }, [symbolsKey, marketVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    for (const s of symbols) void marketData.getSparklineAsync?.(s, 24);
   }, [symbolsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const createList = () => {

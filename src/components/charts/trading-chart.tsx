@@ -30,6 +30,8 @@ import {
   type SeriesPoint,
 } from "@/lib/indicators";
 import { cn, uid } from "@/lib/utils";
+import { useMarketVersion } from "@/lib/hooks";
+import { useUiStore } from "@/lib/stores/ui-store";
 import {
   MousePointer2,
   Minus,
@@ -119,11 +121,21 @@ export function TradingChart({
     basePrice: number;
   } | null>(null);
   const paneRectRef = useRef(paneRect);
+  const demoMode = useUiStore((s) => s.demoMode);
+  const showWatermark = demoWatermark && demoMode;
+  const watermarkText = demoMode ? "DEMO DATA" : "LIVE DATA";
+
+  const marketVersion = useMarketVersion();
 
   const candles = useMemo(
     () => marketData.getCandles(symbol, timeframe, 420),
-    [symbol, timeframe]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [symbol, timeframe, marketVersion]
   );
+
+  useEffect(() => {
+    void marketData.getCandlesAsync?.(symbol, timeframe, 420);
+  }, [symbol, timeframe]);
 
   useEffect(() => {
     paneRectRef.current = paneRect;
@@ -183,7 +195,7 @@ export function TradingChart({
     });
     chartRef.current = chart;
 
-    if (demoWatermark) {
+    if (showWatermark) {
       try {
         const pane = chart.panes()[0];
         createTextWatermark(pane, {
@@ -191,7 +203,7 @@ export function TradingChart({
           vertAlign: "center",
           lines: [
             {
-              text: "DEMO DATA",
+              text: watermarkText,
               color: "rgba(148,163,184,0.07)",
               fontSize: 42,
               fontStyle: "bold",

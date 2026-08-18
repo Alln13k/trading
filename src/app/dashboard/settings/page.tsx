@@ -205,7 +205,7 @@ export default function SettingsPage() {
             </div>
             <SwitchRow
               label="Auto-refresh quotes"
-              description="Poll demo quotes every few seconds"
+              description="Poll live quotes every few seconds"
               checked={settings.data.autoRefresh}
               onChange={(v) => updateData({ autoRefresh: v })}
             />
@@ -308,18 +308,17 @@ export default function SettingsPage() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-up opacity-60" />
                   <span className="relative inline-flex size-2 rounded-full bg-up" />
                 </span>
-                <p className="text-[13px] font-semibold text-primary">Demo Data Provider</p>
+                <p className="text-[13px] font-semibold text-primary">Live Data Provider</p>
               </div>
               <p className="mt-1.5 text-[11px] leading-relaxed text-secondary">
-                All quotes, candles, news and calendar entries are simulated, deterministic and
-                clearly marked. No real market data, no real money. Swap in a live API by
-                implementing the <code className="rounded bg-line/60 px-1 py-0.5 text-[10px] text-accent-bright">MarketDataProvider</code>{" "}
-                interface in <code className="rounded bg-line/60 px-1 py-0.5 text-[10px] text-accent-bright">src/lib/data/provider.ts</code>.
+                Quotes, candles and news come live from Yahoo Finance; the economic calendar is
+                pulled from Forex Factory. If a source is unreachable, the app gracefully falls
+                back to deterministic simulated data — the fallback is never marked as live.
               </p>
             </div>
             <div className="flex items-center gap-2 text-[11px] text-muted">
               <Activity className="size-3.5" />
-              Deterministic seed — refreshing the page reproduces the same market. Live ticks advance every 3 seconds.
+              Quotes refresh every few seconds via the market API proxy; candles are cached server-side.
             </div>
           </CardContent>
         </Card>
@@ -412,7 +411,7 @@ export default function SettingsPage() {
             <CardTitle className="text-down">
               <RotateCcw className="size-3.5" /> Reset
             </CardTitle>
-            <CardDescription>Restore all demo data to its original state</CardDescription>
+            <CardDescription>Reset the app — local data, settings and watchlists to their original state</CardDescription>
           </CardHeader>
           <CardContent>
             <Button

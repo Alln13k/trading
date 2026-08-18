@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Info } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
-import type { EventImportance } from "@/lib/types";
+import type { EconomicEvent, EventImportance } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/segmented";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const IMP_COLORS: Record<EventImportance, string> = {
   low: "bg-line-strong",
@@ -18,7 +19,20 @@ const IMP_COLORS: Record<EventImportance, string> = {
 
 export default function CalendarPage() {
   const [importance, setImportance] = useState<"all" | EventImportance>("all");
-  const events = useMemo(() => marketData.getEconomicCalendar(), []);
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<EconomicEvent[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    marketData.getEconomicCalendarAsync?.().then((items) => {
+      if (!alive) return;
+      setEvents(items);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const groups = useMemo(() => {
     const map = new Map<string, typeof events>();
@@ -35,7 +49,7 @@ export default function CalendarPage() {
     <div className="animate-fade-in">
       <PageHeader
         title="Economic Calendar"
-        description="Key macro events with forecast and previous readings — demo data, refreshed weekly."
+        description="Key macro events with forecast and previous readings — live from Forex Factory."
         actions={
           <span className="flex items-center gap-1.5 text-[11px] text-muted">
             <Info className="size-3.5" /> Times in UTC
@@ -56,6 +70,16 @@ export default function CalendarPage() {
       />
 
       <div className="space-y-4">
+        {loading &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="space-y-2 p-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
         {groups.map(([date, dayEvents]) => (
           <Card key={date}>
             <CardContent className="p-0">

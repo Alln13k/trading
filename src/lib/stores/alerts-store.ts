@@ -100,6 +100,10 @@ export const useAlertsStore = create<AlertsState>()(
             hit = true;
             body = `${symbolName} crossed below ${alert.value.toLocaleString()}`;
           } else if (alert.type === "rsi_above" || alert.type === "rsi_below") {
+            if (!marketData.hasLiveCandles?.(alert.symbol, "1h")) {
+              void marketData.getCandlesAsync?.(alert.symbol, "1h", 80);
+              continue;
+            }
             const candles = marketData.getCandles(alert.symbol, "1h", 40);
             const r = rsi(candles, 14);
             const last = r[r.length - 1]?.value;
@@ -113,6 +117,10 @@ export const useAlertsStore = create<AlertsState>()(
               body = `${symbolName} RSI(14) below ${alert.value} (${last.toFixed(1)})`;
             }
           } else if (alert.type === "cross_ema") {
+            if (!marketData.hasLiveCandles?.(alert.symbol, "1h")) {
+              void marketData.getCandlesAsync?.(alert.symbol, "1h", 80);
+              continue;
+            }
             const candles = marketData.getCandles(alert.symbol, "1h", 80);
             const e = ema(candles, alert.value);
             const lastC = candles[candles.length - 1];

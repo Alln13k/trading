@@ -112,7 +112,7 @@ export function Topbar({
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-up opacity-60" />
           <span className="relative inline-flex size-1.5 rounded-full bg-up" />
         </span>
-        Demo data
+        Live data
       </span>
 
       {/* Activity */}

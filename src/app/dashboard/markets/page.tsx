@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowUpDown, Search } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
 import type { Category, SymbolMeta } from "@/lib/types";
-import { useLiveQuotes } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useEffect } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/segmented";
@@ -34,10 +35,16 @@ export default function MarketsPage() {
   const symbolList = symbols.map((s) => s.symbol);
   const symbolListKey = symbolList.join(",");
   const quotes = useLiveQuotes(symbolList);
+  const marketVersion = useMarketVersion();
   const sparkCache = useMemo(() => {
     const m = new Map<string, number[]>();
     for (const s of symbolList) m.set(s, marketData.getSparkline(s, 24));
     return m;
+  }, [symbolListKey, marketVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const ids = symbolList.slice(0, 40);
+    for (const s of ids) void marketData.getSparklineAsync?.(s, 24);
   }, [symbolListKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rows = useMemo(() => {
