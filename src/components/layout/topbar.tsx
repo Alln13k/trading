@@ -14,6 +14,7 @@ import {
   Command,
   ChevronDown,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
 import { cn, formatPrice, formatPercent, timeAgo } from "@/lib/utils";
@@ -24,7 +25,7 @@ import { useActivityStore } from "@/lib/stores/activity-store";
 import { Avatar } from "@/components/ui/avatar";
 import { Dropdown, DropdownItem, DropdownHeader, DropdownDivider } from "@/components/ui/dropdown";
 import { Button } from "@/components/ui/button";
-import { useOnClickOutside } from "@/lib/hooks";
+import { useOnClickOutside, useMarketStatus } from "@/lib/hooks";
 
 export function Topbar({
   onOpenSearch,
@@ -53,7 +54,9 @@ export function Topbar({
   const unread = notifications.filter((n) => !n.read).length;
   const meta = marketData.getSymbol(symbol);
   const quote = marketData.getQuote(symbol);
-  const up = quote.changePercent >= 0;
+  const up = (quote?.changePercent ?? 0) >= 0;
+  const marketStatus = useMarketStatus();
+  const quotesDown = marketStatus.quotes === false;
 
   const goTo = (href: string) => {
     router.push(href);
@@ -92,7 +95,7 @@ export function Topbar({
             {meta?.symbol ?? symbol}
           </span>
           <span className="text-[12px] font-medium text-primary tabular">
-            {formatPrice(quote.price, Math.min(meta?.decimals ?? 2, 4))}
+            {quote ? formatPrice(quote.price, Math.min(meta?.decimals ?? 2, 4)) : "—"}
           </span>
           <span
             className={cn(
@@ -100,20 +103,27 @@ export function Topbar({
               up ? "text-up" : "text-down"
             )}
           >
-            {formatPercent(quote.changePercent)}
+            {quote ? formatPercent(quote.changePercent) : "—"}
           </span>
         </div>
       </div>
 
       <div className="flex-1" />
 
-      <span className="hidden items-center gap-1.5 rounded-md border border-line bg-raised/40 px-2 py-1 text-[10px] font-medium text-muted lg:inline-flex">
-        <span className="relative flex size-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-up opacity-60" />
-          <span className="relative inline-flex size-1.5 rounded-full bg-up" />
+      {quotesDown ? (
+        <span className="hidden items-center gap-1.5 rounded-md border border-down/40 bg-down/10 px-2 py-1 text-[10px] font-semibold text-down lg:inline-flex">
+          <AlertTriangle className="size-3" />
+          No data API
         </span>
-        Live data
-      </span>
+      ) : (
+        <span className="hidden items-center gap-1.5 rounded-md border border-line bg-raised/40 px-2 py-1 text-[10px] font-medium text-muted lg:inline-flex">
+          <span className="relative flex size-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-up opacity-60" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-up" />
+          </span>
+          Live data
+        </span>
+      )}
 
       {/* Activity */}
       <div ref={activityRef} className="relative">

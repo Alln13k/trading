@@ -66,18 +66,23 @@ const inflight = new Map<string, Promise<EconomicEvent[]>>();
 
 export async function GET() {
   const hit = cache.get("cal");
-  if (hit && hit.expires > Date.now()) return NextResponse.json({ events: hit.value });
+  if (hit && hit.expires > Date.now()) return NextResponse.json({ ok: true, events: hit.value });
   const pending = inflight.get("cal");
   if (pending) {
     const events = await pending;
-    return NextResponse.json({ events });
+    return NextResponse.json({ ok: events.length > 0, events });
   }
-  const p = fetchCalendar().catch(() => [] as EconomicEvent[]);
+  const p = fetchCalendar();
   inflight.set("cal", p);
   try {
     const events = await p;
     if (events.length > 0) cache.set("cal", { value: events, expires: Date.now() + 30 * 60_000 });
-    return NextResponse.json({ events });
+    return NextResponse.json({ ok: events.length > 0, events });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err instanceof Error ? err.message : "calendar unavailable" },
+      { status: 502 }
+    );
   } finally {
     inflight.delete("cal");
   }

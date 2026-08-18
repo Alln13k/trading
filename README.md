@@ -28,7 +28,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Data
 
-Market data is **live**: quotes, candles, sparklines and news come from Yahoo Finance, and the economic calendar from Forex Factory — proxied through self-hosted API routes (`/api/market/*`) with server-side caching and request coalescing. If a source is unreachable, the app falls back to deterministic simulated data so the UI never breaks; the fallback is never labeled as live.
+Market data is **live only**: quotes, candles, sparklines and news come from Yahoo Finance, and the economic calendar from Forex Factory — proxied through self-hosted API routes (`/api/market/*`) with server-side caching and request coalescing. No simulated data is ever shown: if a source is unreachable the API returns a `502` and the app displays a red **"No data API"** state.
 
 Swap providers by implementing the `MarketDataProvider` interface in `src/lib/data/provider.ts` and changing `DATA_SOURCE`.
 

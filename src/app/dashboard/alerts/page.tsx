@@ -17,6 +17,8 @@ import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SymbolSearch } from "@/components/market/symbol-search";
+import { useMarketStatus } from "@/lib/hooks";
+import { ApiDown } from "@/components/ui/api-down";
 
 const TYPE_LABELS: Record<AlertType, string> = {
   price_above: "Price crosses above",
@@ -79,6 +81,10 @@ export default function AlertsPage() {
           </Button>
         }
       />
+
+      {useMarketStatus().candles === false && (
+        <ApiDown label="alert conditions need live candles" />
+      )}
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2">

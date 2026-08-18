@@ -191,12 +191,18 @@ export function CommandPalette() {
                     {CATEGORY_LABELS[meta.category]}
                   </span>
                   <span className="text-right tabular">
-                    <span className="block text-xs font-medium text-primary">
-                      {formatPrice(quote.price, Math.min(meta.decimals, 4))}
-                    </span>
-                    <span className={quote.changePercent >= 0 ? "text-[11px] text-up" : "text-[11px] text-down"}>
-                      {formatPercent(quote.changePercent)}
-                    </span>
+                    {quote ? (
+                      <>
+                        <span className="block text-xs font-medium text-primary">
+                          {formatPrice(quote.price, Math.min(meta.decimals, 4))}
+                        </span>
+                        <span className={quote.changePercent >= 0 ? "text-[11px] text-up" : "text-[11px] text-down"}>
+                          {formatPercent(quote.changePercent)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-[11px] text-muted">—</span>
+                    )}
                   </span>
                 </button>
               );

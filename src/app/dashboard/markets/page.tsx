@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { ArrowUpDown, Search } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
 import type { Category, SymbolMeta } from "@/lib/types";
-import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion, useMarketStatus } from "@/lib/hooks";
 import { useEffect } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/segmented";
 import { QuoteRow } from "@/components/market/quote-row";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ApiDown } from "@/components/ui/api-down";
 
 type SortKey = "price" | "change" | "volume" | "name";
 
@@ -73,6 +74,8 @@ export default function MarketsPage() {
   };
 
   const loading = quotes.size < symbols.length * 0.5;
+  const marketStatus = useMarketStatus();
+  const quotesDown = marketStatus.quotes === false;
 
   return (
     <div className="animate-fade-in">
@@ -91,6 +94,8 @@ export default function MarketsPage() {
           </div>
         }
       />
+
+      {quotesDown && <ApiDown label="quotes unavailable" className="mb-4" />}
 
       <Tabs
         className="mb-4"

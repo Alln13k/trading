@@ -5,17 +5,19 @@ import { useEffect, useMemo } from "react";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { DEFAULT_MARKET_SYMBOLS } from "@/lib/data/mockProvider";
 import { marketData } from "@/lib/data/provider";
-import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion, useMarketStatus } from "@/lib/hooks";
 import { cn, formatPercent, formatPrice } from "@/lib/utils";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ApiDown } from "@/components/ui/api-down";
 
 export function MarketOverview({ ready }: { ready: boolean }) {
   const router = useRouter();
   const quotes = useLiveQuotes(DEFAULT_MARKET_SYMBOLS);
   const marketVersion = useMarketVersion();
+  const marketStatus = useMarketStatus();
   const sparks = useMemo(
     () => DEFAULT_MARKET_SYMBOLS.map((s) => marketData.getSparkline(s, 24)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,6 +54,11 @@ export function MarketOverview({ ready }: { ready: boolean }) {
           View all markets →
         </button>
       </CardHeader>
+      {marketStatus.quotes === false ? (
+        <CardContent>
+          <ApiDown label="quotes unavailable" />
+        </CardContent>
+      ) : (
       <CardContent className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-4">
         {DEFAULT_MARKET_SYMBOLS.map((s, i) => {
           const meta = marketData.getSymbol(s);
@@ -99,6 +106,7 @@ export function MarketOverview({ ready }: { ready: boolean }) {
           );
         })}
       </CardContent>
+      )}
     </Card>
   );
 }

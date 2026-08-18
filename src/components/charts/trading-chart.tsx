@@ -30,8 +30,9 @@ import {
   type SeriesPoint,
 } from "@/lib/indicators";
 import { cn, uid } from "@/lib/utils";
-import { useMarketVersion } from "@/lib/hooks";
+import { useMarketVersion, useMarketStatus } from "@/lib/hooks";
 import { useUiStore } from "@/lib/stores/ui-store";
+import { ApiDown } from "@/components/ui/api-down";
 import {
   MousePointer2,
   Minus,
@@ -124,6 +125,7 @@ export function TradingChart({
   const demoMode = useUiStore((s) => s.demoMode);
   const showWatermark = demoWatermark && demoMode;
   const watermarkText = demoMode ? "DEMO DATA" : "LIVE DATA";
+  const candlesDown = useMarketStatus().candles === false;
 
   const marketVersion = useMarketVersion();
 
@@ -619,6 +621,11 @@ export function TradingChart({
       )}
     >
       <div ref={containerRef} className="h-[62vh] min-h-[380px] w-full md:h-[68vh]" />
+      {candlesDown && candles.length === 0 && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+          <ApiDown label="market data unreachable" className="border-2 shadow-xl shadow-black/40" />
+        </div>
+      )}
       {overlayVisible && (
         <svg
           className="absolute cursor-crosshair select-none"

@@ -5,11 +5,13 @@ import { CalendarClock, Info } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
 import type { EconomicEvent, EventImportance } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useMarketStatus } from "@/lib/hooks";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/segmented";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ApiDown } from "@/components/ui/api-down";
 
 const IMP_COLORS: Record<EventImportance, string> = {
   low: "bg-line-strong",
@@ -45,6 +47,8 @@ export default function CalendarPage() {
     return [...map.entries()];
   }, [events, importance]);
 
+  const calendarDown = useMarketStatus().calendar === false;
+
   return (
     <div className="animate-fade-in">
       <PageHeader
@@ -56,6 +60,8 @@ export default function CalendarPage() {
           </span>
         }
       />
+
+      {calendarDown && <ApiDown label="calendar feed unavailable" className="mb-4" />}
 
       <Tabs
         className="mb-4"

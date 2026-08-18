@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Star, ListPlus, X, Pencil } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
-import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion, useMarketStatus } from "@/lib/hooks";
 import { useEffect } from "react";
 import { useWatchlistStore } from "@/lib/stores/watchlist-store";
 import { useToastStore } from "@/lib/stores/toast-store";
@@ -21,6 +21,7 @@ import { QuoteRow } from "@/components/market/quote-row";
 import { SymbolSearch } from "@/components/market/symbol-search";
 import { SymbolIcon } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm";
+import { ApiDown } from "@/components/ui/api-down";
 
 export default function WatchlistPage() {
   const router = useRouter();
@@ -111,6 +112,8 @@ export default function WatchlistPage() {
           </Button>
         }
       />
+
+      {useMarketStatus().quotes === false && <ApiDown label="quotes unavailable" className="mb-4" />}
 
       {watchlists.length === 0 ? (
         <EmptyState

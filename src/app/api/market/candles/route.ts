@@ -11,6 +11,13 @@ export async function GET(req: NextRequest) {
   if (!symbol || !TIMEFRAMES.includes(tf as (typeof TIMEFRAMES)[number])) {
     return NextResponse.json({ error: "invalid params" }, { status: 400 });
   }
-  const candles = await getCandlesFor(symbol, tf as (typeof TIMEFRAMES)[number], count);
-  return NextResponse.json({ symbol, timeframe: tf, candles });
+  try {
+    const candles = await getCandlesFor(symbol, tf as (typeof TIMEFRAMES)[number], count);
+    return NextResponse.json({ ok: true, symbol, timeframe: tf, candles });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err instanceof Error ? err.message : "candles unavailable" },
+      { status: 502 }
+    );
+  }
 }

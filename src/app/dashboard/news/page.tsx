@@ -6,12 +6,14 @@ import { Newspaper, Clock } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
 import type { NewsItem } from "@/lib/types";
 import { timeAgo } from "@/lib/utils";
+import { useMarketStatus } from "@/lib/hooks";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { SymbolIcon } from "@/components/ui/avatar";
 import { Tabs } from "@/components/ui/segmented";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ApiDown } from "@/components/ui/api-down";
+import { SymbolIcon } from "@/components/ui/avatar";
 
 const CATEGORIES = ["All", "Crypto", "Stocks", "Forex", "Macro", "Economy", "Technology"] as const;
 
@@ -42,6 +44,7 @@ export default function NewsPage() {
   }, []);
 
   const filtered = category === "All" ? news : news.filter((n) => n.category === category);
+  const newsDown = useMarketStatus().news === false;
 
   return (
     <div className="animate-fade-in">
@@ -49,6 +52,8 @@ export default function NewsPage() {
         title="News"
         description="Curated financial headlines — live from Yahoo Finance. Follow the story behind the move."
       />
+
+      {newsDown && <ApiDown label="news feed unavailable" className="mb-4" />}
 
       <Tabs
         className="mb-4"

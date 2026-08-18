@@ -13,7 +13,8 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
-import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion, useMarketStatus } from "@/lib/hooks";
+import { ApiDown } from "@/components/ui/api-down";
 import { useUiStore } from "@/lib/stores/ui-store";
 import {
   rsi,
@@ -54,6 +55,7 @@ export default function AnalysisPage() {
   const quotes = useLiveQuotes([symbol]);
   const quote = quotes.get(symbol);
   const marketVersion = useMarketVersion();
+  const marketStatus = useMarketStatus();
 
   useEffect(() => {
     void marketData.getCandlesAsync?.(symbol, "1D", 220);
@@ -166,9 +168,13 @@ export default function AnalysisPage() {
     return (
       <div className="animate-fade-in">
         <PageHeader title="Analysis" description="Automated technical snapshot for any asset." />
-        <Card>
-          <CardContent className="py-12 text-center text-sm text-muted">Loading analysis…</CardContent>
-        </Card>
+        {marketStatus.candles === false ? (
+          <ApiDown label="market data unreachable" />
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center text-sm text-muted">Loading analysis…</CardContent>
+          </Card>
+        )}
       </div>
     );
   }

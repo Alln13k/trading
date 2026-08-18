@@ -6,7 +6,8 @@ import type { MarketDataProvider } from "@/lib/data/mockProvider";
  *
  * The whole app talks to `marketData` (a MarketDataProvider). Live mode proxies
  * Yahoo Finance / Forex Factory through the app's own API routes with caching,
- * and falls back to deterministic demo data whenever the APIs are unreachable.
+ * and surfaces a "No data API" state (red) whenever a live source is unreachable.
+ * No simulated data is ever shown as real market data.
  */
 export const DATA_SOURCE: "demo" | "live" = "live";
 

@@ -21,7 +21,7 @@ import { useSettingsStore, useCurrentUser } from "@/lib/stores/settings-store";
 import { useUiStore } from "@/lib/stores/ui-store";
 import { useToastStore } from "@/lib/stores/toast-store";
 import { useActivityStore } from "@/lib/stores/activity-store";
-import { useLiveQuotes, useMarketVersion } from "@/lib/hooks";
+import { useLiveQuotes, useMarketVersion, useMarketStatus } from "@/lib/hooks";
 import { cn, formatPrice, formatPercent, formatCompact, uid } from "@/lib/utils";
 import { Segmented } from "@/components/ui/segmented";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,7 @@ function ChartsInner() {
 
   const meta2 = marketData.getSymbol(symbol);
   const marketVersion = useMarketVersion();
+  const marketStatus = useMarketStatus();
   const spark = useMemo(
     () => marketData.getSparkline(symbol, 40),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,7 +200,11 @@ function ChartsInner() {
               <span className="ml-2 text-muted">· 24h vol {quote ? formatCompact(quote.volume) : "—"}</span>
             </p>
           </div>
-          <MiniSpark data={spark} up={up} />
+          {marketStatus.candles === false && spark.length === 0 ? (
+            <span className="text-[10px] font-semibold text-down">No data API</span>
+          ) : (
+            <MiniSpark data={spark} up={up} />
+          )}
         </div>
       </div>
 

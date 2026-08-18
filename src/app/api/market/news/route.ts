@@ -125,28 +125,29 @@ const inflight = new Map<string, Promise<NewsItem[]>>();
 
 export async function GET() {
   const hit = cache.get("news");
-  if (hit && hit.expires > Date.now()) return NextResponse.json({ news: hit.value });
+  if (hit && hit.expires > Date.now()) return NextResponse.json({ ok: true, news: hit.value });
   const pending = inflight.get("news");
   if (pending) {
     const news = await pending;
-    return NextResponse.json({ news });
+    return NextResponse.json({ ok: news.length > 0, news });
   }
   const p = (async () => {
     try {
       return await fetchNewsJson();
     } catch {
-      try {
-        return await fetchNewsRss();
-      } catch {
-        return [];
-      }
+      return await fetchNewsRss();
     }
   })();
   inflight.set("news", p);
   try {
     const news = await p;
     if (news.length > 0) cache.set("news", { value: news, expires: Date.now() + 10 * 60_000 });
-    return NextResponse.json({ news });
+    return NextResponse.json({ ok: news.length > 0, news });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err instanceof Error ? err.message : "news unavailable" },
+      { status: 502 }
+    );
   } finally {
     inflight.delete("news");
   }

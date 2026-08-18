@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { MarketDataStatus } from "@/lib/data/mockProvider";
 import type { Quote } from "@/lib/types";
 import { marketData } from "@/lib/data/provider";
 import { marketEvents } from "@/lib/data/marketEvents";
@@ -16,6 +17,14 @@ export function useMarketVersion() {
   const [version, setVersion] = useState(0);
   useEffect(() => marketEvents.subscribe(() => setVersion((v) => v + 1)), []);
   return version;
+}
+
+export function useMarketStatus(): MarketDataStatus {
+  return useSyncExternalStore(
+    (cb) => marketEvents.subscribe(cb),
+    () => marketData.status,
+    () => marketData.status
+  );
 }
 
 export function useLiveQuotes(symbols: string[], enabled = true) {

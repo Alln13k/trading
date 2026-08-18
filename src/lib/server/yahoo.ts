@@ -1,11 +1,10 @@
 import type { Candle, Quote, Timeframe } from "@/lib/types";
 import { getSymbolMeta } from "@/lib/data/symbols";
-import { generateCandles, getLiveQuote } from "@/lib/data/candleEngine";
 import { toYahooSymbol, TF_PARAMS } from "@/lib/data/yahooMap";
 
 /**
- * Server-side Yahoo Finance access: in-memory cache + single-flight per key,
- * with deterministic demo fallback whenever the API is unreachable.
+ * Server-side Yahoo Finance access: in-memory cache + single-flight per key.
+ * Throws when the upstream API is unreachable — no simulated fallback.
  */
 
 const HOUR = 3600_000;
@@ -127,20 +126,16 @@ export function getCandlesFor(symbol: string, timeframe: Timeframe, count: numbe
   const params = TF_PARAMS[timeframe];
   const key = `c:${symbol}:${timeframe}`;
   if (!yahoo || !params) {
-    return cached(key, 5 * 60_000, async () => generateCandles(symbol, timeframe, count));
+    return Promise.reject(new Error(`unsupported symbol for live candles: ${symbol}`));
   }
   const ttl = timeframe === "1m" || timeframe === "5m" ? 30_000 : 60_000;
   return cached(key, ttl, async () => {
-    try {
-      const chart = await fetchChartRaw(yahoo, params.range, params.interval);
-      if (!chart) throw new Error("no chart result");
-      let candles = chartToCandles(chart);
-      if (timeframe === "4h") candles = aggregate(candles, 4 * 3600);
-      if (candles.length === 0) throw new Error("empty candles");
-      return candles.slice(-Math.max(count, 10));
-    } catch {
-      return generateCandles(symbol, timeframe, count);
-    }
+    const chart = await fetchChartRaw(yahoo, params.range, params.interval);
+    if (!chart) throw new Error("no chart result");
+    let candles = chartToCandles(chart);
+    if (timeframe === "4h") candles = aggregate(candles, 4 * 3600);
+    if (candles.length === 0) throw new Error("empty candles");
+    return candles.slice(-Math.max(count, 10));
   });
 }
 
@@ -148,33 +143,29 @@ export function getQuoteFor(symbol: string): Promise<Quote> {
   const yahoo = toYahooSymbol(symbol);
   const key = `q:${symbol}`;
   if (!yahoo) {
-    return cached(key, 60_000, async () => getLiveQuote(symbol));
+    return Promise.reject(new Error(`unsupported symbol for live quote: ${symbol}`));
   }
   const ttl = 8_000;
   return cached(key, ttl, async () => {
-    try {
-      const chart = await fetchChartRaw(yahoo, "1d", "5m");
-      if (!chart) throw new Error("no chart result");
-      const meta = chart.meta;
-      const price = meta.regularMarketPrice;
-      if (price === undefined || price === null) throw new Error("no price");
-      const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
-      const candles = chartToCandles(chart);
-      const last = candles[candles.length - 1];
-      return {
-        symbol,
-        price,
-        change: price - prev,
-        changePercent: prev > 0 ? ((price - prev) / prev) * 100 : 0,
-        dayHigh: meta.regularMarketDayHigh ?? last?.high ?? price,
-        dayLow: meta.regularMarketDayLow ?? last?.low ?? price,
-        volume: meta.regularMarketVolume ?? last?.volume ?? 0,
-        previousClose: prev,
-        timestamp: (meta.regularMarketTime ?? Date.now() / 1000) * 1000,
-      };
-    } catch {
-      return getLiveQuote(symbol);
-    }
+    const chart = await fetchChartRaw(yahoo, "1d", "5m");
+    if (!chart) throw new Error("no chart result");
+    const meta = chart.meta;
+    const price = meta.regularMarketPrice;
+    if (price === undefined || price === null) throw new Error("no price");
+    const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
+    const candles = chartToCandles(chart);
+    const last = candles[candles.length - 1];
+    return {
+      symbol,
+      price,
+      change: price - prev,
+      changePercent: prev > 0 ? ((price - prev) / prev) * 100 : 0,
+      dayHigh: meta.regularMarketDayHigh ?? last?.high ?? price,
+      dayLow: meta.regularMarketDayLow ?? last?.low ?? price,
+      volume: meta.regularMarketVolume ?? last?.volume ?? 0,
+      previousClose: prev,
+      timestamp: (meta.regularMarketTime ?? Date.now() / 1000) * 1000,
+    };
   });
 }
 
