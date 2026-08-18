@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #06070d;
+  --color-surface: #0b0d15;
+  --color-raised: #10131e;
+  --color-overlay: #151927;
+  --color-line: rgba(148, 163, 184, 0.1);
+  --color-line-strong: rgba(148, 163, 184, 0.2);
+  --color-primary: #e9ecf5;
+  --color-secondary: #9aa3b8;
+  --color-muted: #5e6882;
+  --color-accent: #6366f1;
+  --color-accent-bright: #818cf8;
+  --color-accent-soft: rgba(99, 102, 241, 0.13);
+  --color-violet: #8b5cf6;
+  --color-up: #34d399;
+  --color-up-soft: rgba(52, 211, 153, 0.12);
+  --color-down: #fb7185;
+  --color-down-soft: rgba(251, 113, 133, 0.12);
+  --color-warn: #fbbf24;
+  --color-warn-soft: rgba(251, 191, 36, 0.12);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --animate-fade-in: fade-in 0.35s ease both;
+  --animate-slide-up: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-scale-in: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes shimmer {
+    from { background-position: -400px 0; }
+    to { background-position: 400px 0; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(52, 211, 153, 0); }
+  }
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-primary);
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.35);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.22) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.32);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.text-gradient {
+  background: linear-gradient(92deg, #818cf8 0%, #a78bfa 45%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-gradient-accent {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.bg-gradient-accent-soft {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(139, 92, 246, 0.1));
+}
+
+.ring-glow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45);
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.chart-toolbar-btn {
+  @apply inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-raised hover:text-primary;
+}
+
+.chart-toolbar-btn-active {
+  @apply bg-accent-soft text-accent-bright hover:bg-accent-soft;
+}
