@@ -204,7 +204,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Portfolio equity</CardTitle>
-              <CardDescription>Last 30 days · portfolio performance</CardDescription>
+              <CardDescription>Paper account · $100,000 virtual balance</CardDescription>
             </CardHeader>
             <CardContent>
               {!ready ? (

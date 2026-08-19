@@ -16,14 +16,7 @@ interface WatchlistState {
   toggleSymbolInAll: (symbol: string) => void;
 }
 
-const daysAgo = (d: number) => Date.now() - d * 86400000;
-
-const SEED: Watchlist[] = [
-  { id: "wl1", name: "Crypto", symbols: ["BTC", "ETH", "SOL", "LINK", "DOGE"], createdAt: daysAgo(21), userId: "u1", userName: "Allan" },
-  { id: "wl2", name: "Forex", symbols: ["EURUSD", "GBPUSD", "USDJPY", "USDCHF"], createdAt: daysAgo(18), userId: "u1", userName: "Allan" },
-  { id: "wl3", name: "Long Term", symbols: ["AAPL", "NVDA", "GOLD", "SPX", "MSFT"], createdAt: daysAgo(14), userId: "u2", userName: "Alex" },
-  { id: "wl4", name: "À surveiller", symbols: ["TSLA", "VIX", "SHIB", "EURJPY"], createdAt: daysAgo(6), userId: "u2", userName: "Alex" },
-];
+const SEED: Watchlist[] = [];
 
 export const useWatchlistStore = create<WatchlistState>()(
   persist(
@@ -88,6 +81,6 @@ export const useWatchlistStore = create<WatchlistState>()(
         }
       },
     }),
-    { name: "trading-watchlists" }
+    { name: "trading-watchlists-v2" }
   )
 );

@@ -30,30 +30,13 @@ interface AlertsState {
   resetAlerts: () => void;
 }
 
-const daysAgo = (d: number) => Date.now() - d * 86400000;
-
-const SEED: Alert[] = [
-  { id: "al1", symbol: "BTC", type: "price_above", value: 120000, active: true, createdAt: daysAgo(3), userId: "u1", userName: "Allan" },
-  { id: "al2", symbol: "EURUSD", type: "price_below", value: 1.08, active: true, createdAt: daysAgo(2), userId: "u2", userName: "Alex" },
-  { id: "al3", symbol: "BTC", type: "rsi_below", value: 30, active: true, createdAt: daysAgo(1), userId: "u1", userName: "Allan" },
-  { id: "al4", symbol: "NVDA", type: "price_above", value: 185, active: false, createdAt: daysAgo(5), userId: "u2", userName: "Alex" },
-  { id: "al5", symbol: "GOLD", type: "cross_ema", value: 50, active: true, createdAt: daysAgo(1.5), userId: "u1", userName: "Allan" },
-];
+const SEED: Alert[] = [];
 
 export const useAlertsStore = create<AlertsState>()(
   persist(
     (set, get) => ({
       alerts: SEED,
-      notifications: [
-        {
-          id: "nt1",
-          title: "Welcome to NexTrade",
-          body: "Allan and Alex are now connected on the workspace.",
-          timestamp: daysAgo(0.4),
-          read: false,
-          kind: "system",
-        },
-      ],
+      notifications: [],
       addAlert: (a) => {
         const alert: Alert = { ...a, id: uid("al"), createdAt: Date.now(), active: true };
         set((s) => ({ alerts: [alert, ...s.alerts] }));
@@ -158,6 +141,6 @@ export const useAlertsStore = create<AlertsState>()(
       },
       resetAlerts: () => set({ alerts: SEED, notifications: [] }),
     }),
-    { name: "trading-alerts" }
+    { name: "trading-alerts-v2" }
   )
 );

@@ -38,56 +38,9 @@ interface PositionsState {
   resetPositions: () => void;
 }
 
-const daysAgo = (d: number) => Date.now() - d * 86400000;
+const SEED: Position[] = [];
 
-const SEED: Position[] = [
-  {
-    id: "p1",
-    symbol: "BTC",
-    direction: "long",
-    size: 0.04,
-    entryPrice: 95400,
-    currentPrice: 98050,
-    stopLoss: 92000,
-    takeProfit: 102000,
-    openedAt: daysAgo(2.2),
-    userId: "u1",
-    userName: "Allan",
-    note: "Breakout above 95k with volume. Watching daily close above 96k.",
-  },
-  {
-    id: "p2",
-    symbol: "ETH",
-    direction: "long",
-    size: 1.2,
-    entryPrice: 3310,
-    currentPrice: 3465,
-    takeProfit: 3800,
-    openedAt: daysAgo(1.4),
-    userId: "u2",
-    userName: "Alex",
-    note: "Trend following after EMA20 hold.",
-  },
-  {
-    id: "p3",
-    symbol: "EURUSD",
-    direction: "short",
-    size: 15000,
-    entryPrice: 1.0875,
-    currentPrice: 1.0845,
-    stopLoss: 1.095,
-    takeProfit: 1.072,
-    openedAt: daysAgo(0.9),
-    userId: "u1",
-    userName: "Allan",
-  },
-];
-
-const SEED_COMMENTS: Record<string, PositionComment[]> = {
-  p1: [
-    { id: "c1", userId: "u2", userName: "Alex", text: "Nice setup — volume confirms. I'd trail the stop to 95,800.", timestamp: daysAgo(1.8) },
-  ],
-};
+const SEED_COMMENTS: Record<string, PositionComment[]> = {};
 
 export const usePositionsStore = create<PositionsState>()(
   persist(
@@ -165,7 +118,7 @@ export const usePositionsStore = create<PositionsState>()(
         })),
       resetPositions: () => set({ positions: SEED, comments: SEED_COMMENTS }),
     }),
-    { name: "trading-positions" }
+    { name: "trading-positions-v2" }
   )
 );
 

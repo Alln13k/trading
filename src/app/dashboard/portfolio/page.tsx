@@ -182,7 +182,7 @@ export default function PortfolioPage() {
     <div className="animate-fade-in space-y-5">
       <PageHeader
         title="Portfolio"
-        description="Your virtual portfolio — all numbers move with live market quotes."
+        description="Paper account — $100,000 virtual balance, live market quotes, no real money."
         actions={
           <Button onClick={() => setAddOpen(true)}>
             <Plus className="size-3.5" /> Add asset
