@@ -12,8 +12,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 export default function StrategiesPage() {
   const notes = useStrategiesStore((s) => s.notes);
   const add = useStrategiesStore((s) => s.add);
+  const update = useStrategiesStore((s) => s.update);
   const remove = useStrategiesStore((s) => s.remove);
   const user = useCurrentUser();
+  const [editing, setEditing] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [setup, setSetup] = useState("");
   const [invalidation, setInvalidation] = useState("");
@@ -38,21 +40,26 @@ export default function StrategiesPage() {
             className="md:col-span-2"
             disabled={!name.trim()}
             onClick={() => {
-              add({
-                name: name.trim(),
-                setup,
-                invalidation,
-                markets,
-                userId: user.id,
-                userName: user.name,
-              });
+              if (editing) {
+                update(editing, { name: name.trim(), setup, invalidation, markets });
+                setEditing(null);
+              } else {
+                add({
+                  name: name.trim(),
+                  setup,
+                  invalidation,
+                  markets,
+                  userId: user.id,
+                  userName: user.name,
+                });
+              }
               setName("");
               setSetup("");
               setInvalidation("");
               setMarkets("");
             }}
           >
-            Save strategy
+            {editing ? "Update strategy" : "Save strategy"}
           </Button>
         </CardContent>
       </Card>
@@ -61,7 +68,7 @@ export default function StrategiesPage() {
       ) : (
         <div className="space-y-2">
           {notes.map((n) => (
-            <Card key={n.id}>
+            <Card key={n.id} id={`strategy-${n.id}`}>
               <CardHeader className="flex-row items-start justify-between">
                 <div>
                   <CardTitle>{n.name}</CardTitle>
@@ -69,9 +76,24 @@ export default function StrategiesPage() {
                     {n.userName} · {n.markets || "no market tag"}
                   </p>
                 </div>
-                <Button size="xs" variant="ghost" onClick={() => remove(n.id)}>
-                  Remove
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditing(n.id);
+                      setName(n.name);
+                      setSetup(n.setup);
+                      setInvalidation(n.invalidation);
+                      setMarkets(n.markets);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button size="xs" variant="ghost" onClick={() => remove(n.id)}>
+                    Remove
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-1 text-[13px] text-secondary">
                 <p>Setup: {n.setup || "—"}</p>

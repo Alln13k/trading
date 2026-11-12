@@ -105,6 +105,8 @@ export interface Trade {
   emotionAfter: string;
   userId: string;
   userName: string;
+  strategyId?: string;
+  paperTradeId?: string;
 }
 
 export interface Holding {

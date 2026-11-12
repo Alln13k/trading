@@ -18,6 +18,7 @@ export interface StrategyNote {
 interface StrategiesState {
   notes: StrategyNote[];
   add: (note: Omit<StrategyNote, "id" | "createdAt">) => void;
+  update: (id: string, patch: Partial<Pick<StrategyNote, "name" | "setup" | "invalidation" | "markets">>) => void;
   remove: (id: string) => void;
 }
 
@@ -28,6 +29,10 @@ export const useStrategiesStore = create<StrategiesState>()(
       add: (note) =>
         set((s) => ({
           notes: [{ ...note, id: uid("st"), createdAt: Date.now() }, ...s.notes],
+        })),
+      update: (id, patch) =>
+        set((s) => ({
+          notes: s.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)),
         })),
       remove: (id) => set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
     }),

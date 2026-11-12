@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Plus,
   Trash2,
@@ -18,6 +19,8 @@ import { useJournalStore, type JournalComment } from "@/lib/stores/journal-store
 import { useToastStore } from "@/lib/stores/toast-store";
 import { useActivityStore } from "@/lib/stores/activity-store";
 import { useCurrentUser } from "@/lib/stores/settings-store";
+import { useStrategiesStore } from "@/lib/stores/strategies-store";
+import { usePaperStore } from "@/lib/stores/paper-store";
 import type { Trade } from "@/lib/types";
 import { cn, formatCurrency, formatPercent, formatPrice, timeAgo } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -56,6 +59,8 @@ export default function JournalPage() {
   const push = useToastStore((s) => s.push);
   const addEvent = useActivityStore((s) => s.addEvent);
   const currentUser = useCurrentUser();
+  const strategyNotes = useStrategiesStore((s) => s.notes);
+  const paperTrades = usePaperStore((s) => s.closed);
 
   const [view, setView] = useState<"list" | "calendar">("list");
   const [addOpen, setAddOpen] = useState(false);
@@ -72,6 +77,8 @@ export default function JournalPage() {
   const [fSymbol, setFSymbol] = useState("");
   const [fDirection, setFDirection] = useState<"long" | "short">("long");
   const [fStrategy, setFStrategy] = useState(STRATEGIES[0]);
+  const [fStrategyId, setFStrategyId] = useState("");
+  const [fPaperTradeId, setFPaperTradeId] = useState("");
   const [fEntry, setFEntry] = useState("");
   const [fExit, setFExit] = useState("");
   const [fSl, setFSl] = useState("");
@@ -143,6 +150,8 @@ export default function JournalPage() {
     setFSymbol("");
     setFDirection("long");
     setFStrategy(STRATEGIES[0]);
+    setFStrategyId("");
+    setFPaperTradeId("");
     setFEntry("");
     setFExit("");
     setFSl("");
@@ -165,6 +174,8 @@ export default function JournalPage() {
       symbol: fSymbol,
       direction: fDirection,
       strategy: fStrategy,
+      strategyId: fStrategyId || undefined,
+      paperTradeId: fPaperTradeId || undefined,
       entryPrice: parseFloat(fEntry),
       exitPrice: parseFloat(fExit) || parseFloat(fEntry),
       stopLoss: parseFloat(fSl) || undefined,
@@ -196,6 +207,8 @@ export default function JournalPage() {
       symbol: fSymbol || editTrade?.symbol,
       direction: fDirection,
       strategy: fStrategy,
+      strategyId: fStrategyId || undefined,
+      paperTradeId: fPaperTradeId || undefined,
       entryPrice: parseFloat(fEntry) || 0,
       exitPrice: parseFloat(fExit) || 0,
       stopLoss: parseFloat(fSl) || undefined,
@@ -216,6 +229,8 @@ export default function JournalPage() {
     setFSymbol(t.symbol);
     setFDirection(t.direction);
     setFStrategy(t.strategy);
+    setFStrategyId(t.strategyId ?? "");
+    setFPaperTradeId(t.paperTradeId ?? "");
     setFEntry(String(t.entryPrice));
     setFExit(String(t.exitPrice));
     setFSl(t.stopLoss ? String(t.stopLoss) : "");
@@ -388,6 +403,15 @@ export default function JournalPage() {
                           </p>
                           <p className="text-[10px] text-muted">
                             {t.date} · {t.time} · {t.strategy}
+                            {t.strategyId && (
+                              <>
+                                {" · "}
+                                <Link href={`/dashboard/strategies#strategy-${t.strategyId}`} className="text-accent">
+                                  strategy
+                                </Link>
+                              </>
+                            )}
+                            {t.paperTradeId && ` · paper ${t.paperTradeId}`}
                           </p>
                         </div>
                         <div className="hidden text-right tabular md:block">
@@ -548,6 +572,53 @@ export default function JournalPage() {
                 ))}
               </Select>
             </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[11px] font-medium text-muted">Saved strategy</label>
+            <Select
+              value={fStrategyId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setFStrategyId(id);
+                const note = strategyNotes.find((n) => n.id === id);
+                if (note) setFStrategy(note.name);
+              }}
+            >
+              <option value="">None</option>
+              {strategyNotes.map((n) => (
+                <option key={n.id} value={n.id}>{n.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[11px] font-medium text-muted">Paper trade</label>
+            <Select
+              value={fPaperTradeId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setFPaperTradeId(id);
+                const trade = paperTrades.find((t) => t.id === id);
+                if (!trade) return;
+                setFSymbol(trade.symbol);
+                setFDirection(trade.side);
+                setFEntry(String(trade.entryPrice));
+                setFExit(String(trade.exitPrice));
+                setFSize(String(trade.qty));
+                setFPnl(String(trade.pnl));
+                if (trade.stopLoss) setFSl(String(trade.stopLoss));
+                if (trade.takeProfit) setFTp(String(trade.takeProfit));
+                if (trade.strategyName) setFStrategy(trade.strategyName);
+                if (trade.strategyId) setFStrategyId(trade.strategyId);
+                if (trade.note) setFNotes(trade.note);
+              }}
+            >
+              <option value="">None</option>
+              {paperTrades.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.symbol} {t.side} {t.pnl.toFixed(2)}
+                </option>
+              ))}
+            </Select>
           </div>
           <div>
             <label className="mb-1.5 block text-[11px] font-medium text-muted">Entry price</label>
