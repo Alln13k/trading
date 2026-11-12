@@ -13,11 +13,12 @@ import {
   X,
 } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
-import { TIMEFRAMES } from "@/lib/data/candleEngine";
-import type { Timeframe } from "@/lib/types";
+import { CHART_TIMEFRAMES } from "@/lib/data/candleEngine";
+import type { DataQuality, Timeframe } from "@/lib/types";
+import { DataBadge } from "@/components/data/data-badge";
 import type { Drawing, IndicatorConfig, IndicatorKind } from "@/lib/stores/chart-store";
 import { useChartStore } from "@/lib/stores/chart-store";
-import { useSettingsStore, useCurrentUser } from "@/lib/stores/settings-store";
+import { useCurrentUser } from "@/lib/stores/settings-store";
 import { useUiStore } from "@/lib/stores/ui-store";
 import { useToastStore } from "@/lib/stores/toast-store";
 import { useActivityStore } from "@/lib/stores/activity-store";
@@ -59,22 +60,25 @@ export default function ChartsPage() {
 function ChartsInner() {
   const searchParams = useSearchParams();
   const requested = searchParams.get("symbol");
-  const uiSelected = useUiStore((s) => s.selectedSymbol);
   const setSelectedSymbol = useUiStore((s) => s.setSelectedSymbol);
+  const timeframe = useChartStore((s) => s.timeframe);
+  const setTimeframe = useChartStore((s) => s.setTimeframe);
+  const chartType = useChartStore((s) => s.chartType);
+  const setChartType = useChartStore((s) => s.setChartType);
+  const showVolume = useChartStore((s) => s.showVolume);
+  const setShowVolume = useChartStore((s) => s.setShowVolume);
+  const storedSymbol = useChartStore((s) => s.symbol);
+  const setStoredSymbol = useChartStore((s) => s.setSymbol);
 
   const symbol = useMemo(() => {
-    const candidate = requested && marketData.getSymbol(requested) ? requested : uiSelected;
+    const candidate = requested && marketData.getSymbol(requested) ? requested : storedSymbol;
     return candidate && marketData.getSymbol(candidate) ? candidate : "BTC";
-  }, [requested, uiSelected]);
+  }, [requested, storedSymbol]);
 
   useEffect(() => {
     setSelectedSymbol(symbol);
-  }, [symbol, setSelectedSymbol]);
-
-  const chartsSettings = useSettingsStore((s) => s.settings.charts);
-  const [timeframe, setTimeframe] = useState<Timeframe>(chartsSettings.defaultTimeframe);
-  const [chartType, setChartType] = useState<"candles" | "line" | "area">(chartsSettings.defaultChartType);
-  const [showVolume, setShowVolume] = useState(chartsSettings.showVolume);
+    if (symbol !== storedSymbol) setStoredSymbol(symbol);
+  }, [symbol, storedSymbol, setSelectedSymbol, setStoredSymbol]);
   const [indicators, setIndicators] = useState<IndicatorConfig[]>([
     { id: uid("ind"), kind: "ema", period: 20, color: "#22d3ee", pane: "main" },
     { id: uid("ind"), kind: "ema", period: 50, color: "#a78bfa", pane: "main" },
@@ -100,6 +104,14 @@ function ChartsInner() {
   const [newIndColor, setNewIndColor] = useState("#22d3ee");
   const [layoutName, setLayoutName] = useState("");
 
+  const marketStatusCandles = useMarketStatus().candles;
+  const marketVersion = useMarketVersion();
+  const candleQuality = useMemo((): DataQuality | "loading" => {
+    const known = marketData.getCandleQuality?.(symbol, timeframe);
+    if (known) return known;
+    if (marketStatusCandles === false) return "unavailable";
+    return "loading";
+  }, [symbol, timeframe, marketStatusCandles, marketVersion]);
   const quotes = useLiveQuotes([symbol]);
   const quote = quotes.get(symbol);
   const meta = marketData.getSymbol(symbol);
@@ -112,7 +124,6 @@ function ChartsInner() {
   const currentUser = useCurrentUser();
 
   const meta2 = marketData.getSymbol(symbol);
-  const marketVersion = useMarketVersion();
   const marketStatus = useMarketStatus();
   const spark = useMemo(
     () => marketData.getSparkline(symbol, 40),
@@ -192,8 +203,13 @@ function ChartsInner() {
         </div>
         <div className="flex items-center gap-4 text-right">
           <div>
-            <p className="text-2xl font-bold tracking-tight text-primary tabular">
+            <p className="flex items-center justify-end gap-2 text-2xl font-bold tracking-tight text-primary tabular">
               {quote ? formatPrice(quote.price, Math.min(meta2?.decimals ?? 2, 4)) : "—"}
+              {candleQuality === "loading" ? (
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-secondary">Loading bars</span>
+              ) : (
+                <DataBadge quality={candleQuality} />
+              )}
             </p>
             <p className={cn("text-[12px] font-medium tabular", up ? "text-up" : "text-down")}>
               {quote ? formatPercent(quote.changePercent) : "—"}
@@ -214,7 +230,7 @@ function ChartsInner() {
           size="sm"
           value={timeframe}
           onChange={setTimeframe}
-          options={TIMEFRAMES.map((t) => ({ value: t, label: t }))}
+          options={CHART_TIMEFRAMES.map((t) => ({ value: t, label: t }))}
         />
         <div className="mx-1 h-6 w-px bg-line" />
         <Segmented

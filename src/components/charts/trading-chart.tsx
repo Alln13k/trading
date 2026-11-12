@@ -9,7 +9,6 @@ import {
   LineSeries,
   AreaSeries,
   HistogramSeries,
-  createTextWatermark,
   type IChartApi,
   type ISeriesApi,
   type UTCTimestamp,
@@ -31,16 +30,13 @@ import {
 } from "@/lib/indicators";
 import { cn, uid } from "@/lib/utils";
 import { useMarketVersion, useMarketStatus } from "@/lib/hooks";
-import { useUiStore } from "@/lib/stores/ui-store";
 import { ApiDown } from "@/components/ui/api-down";
+import { ChartDrawingsPrimitive } from "@/components/charts/drawing-primitive";
 import {
   MousePointer2,
-  Minus,
-  MoveVertical,
   TrendingUp,
   Square,
   GitCompareArrows,
-  Layers,
   Trash2,
 } from "lucide-react";
 
@@ -49,16 +45,13 @@ export interface ToolConfig {
   color: string;
 }
 
-const DRAW_COLORS = ["#22d3ee", "#a78bfa", "#fbbf24", "#34d399", "#fb7185"];
+const DRAW_COLORS = ["#638BFF", "#20C997", "#F05D6C", "#F1F4F8", "#8B96A7"];
 
-const TOOL_ICONS: Record<string, { icon: typeof Minus; label: string }> = {
+const TOOL_ICONS: Record<"pointer" | "trendline" | "rectangle" | "fibonacci", { icon: typeof MousePointer2; label: string }> = {
   pointer: { icon: MousePointer2, label: "Select" },
-  horizontal: { icon: Minus, label: "Horizontal line" },
-  vertical: { icon: MoveVertical, label: "Vertical line" },
   trendline: { icon: TrendingUp, label: "Trend line" },
   rectangle: { icon: Square, label: "Rectangle" },
   fibonacci: { icon: GitCompareArrows, label: "Fibonacci" },
-  zone: { icon: Layers, label: "Zone" },
 };
 
 interface ChartProps {
@@ -77,6 +70,26 @@ interface ChartProps {
   fullscreen: boolean;
   onToggleFullscreen: () => void;
   demoWatermark?: boolean;
+}
+
+function sanitizeCandles(candles: Candle[]): Candle[] {
+  const sorted = [...candles]
+    .filter(
+      (c) =>
+        Number.isFinite(c.time) &&
+        Number.isFinite(c.open) &&
+        Number.isFinite(c.high) &&
+        Number.isFinite(c.low) &&
+        Number.isFinite(c.close)
+    )
+    .sort((a, b) => a.time - b.time);
+  const out: Candle[] = [];
+  for (const c of sorted) {
+    const prev = out[out.length - 1];
+    if (prev && prev.time === c.time) out[out.length - 1] = c;
+    else out.push(c);
+  }
+  return out;
 }
 
 interface PaneRect {
@@ -101,7 +114,6 @@ export function TradingChart({
   onCrosshair,
   fullscreen,
   onToggleFullscreen,
-  demoWatermark = true,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -122,9 +134,10 @@ export function TradingChart({
     basePrice: number;
   } | null>(null);
   const paneRectRef = useRef(paneRect);
-  const demoMode = useUiStore((s) => s.demoMode);
-  const showWatermark = demoWatermark && demoMode;
-  const watermarkText = demoMode ? "DEMO DATA" : "LIVE DATA";
+  const drawingsPrimitiveRef = useRef<ChartDrawingsPrimitive | null>(null);
+  if (!drawingsPrimitiveRef.current) drawingsPrimitiveRef.current = new ChartDrawingsPrimitive();
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
   const candlesDown = useMarketStatus().candles === false;
 
   const marketVersion = useMarketVersion();
@@ -163,59 +176,38 @@ export function TradingChart({
     const chart = createChart(container, {
       autoSize: true,
       layout: {
-        background: { type: ColorType.Solid, color: "#0b0d15" },
-        textColor: "#5e6882",
+        background: { type: ColorType.Solid, color: "#151B24" },
+        textColor: "#8B96A7",
         fontSize: 11,
         fontFamily: "Geist, ui-sans-serif, system-ui",
         attributionLogo: false,
       },
       grid: {
-        vertLines: { color: "rgba(148,163,184,0.05)" },
-        horzLines: { color: "rgba(148,163,184,0.05)" },
+        vertLines: { color: "#252D39" },
+        horzLines: { color: "#252D39" },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
-        vertLine: {
-          color: "rgba(148,163,184,0.35)",
-          labelBackgroundColor: "#6366f1",
-          style: 2,
-        },
-        horzLine: {
-          color: "rgba(148,163,184,0.35)",
-          labelBackgroundColor: "#6366f1",
-          style: 2,
-        },
+        vertLine: { color: "rgba(139,150,167,0.45)", labelBackgroundColor: "#638BFF", style: 2 },
+        horzLine: { color: "rgba(139,150,167,0.45)", labelBackgroundColor: "#638BFF", style: 2 },
       },
-      rightPriceScale: { borderColor: "rgba(148,163,184,0.15)" },
+      rightPriceScale: { borderColor: "#252D39" },
       timeScale: {
-        borderColor: "rgba(148,163,184,0.15)",
+        borderColor: "#252D39",
         timeVisible: true,
         secondsVisible: false,
         rightOffset: 4,
         barSpacing: 8,
       },
+      handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
+      handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
     });
     chartRef.current = chart;
 
-    if (showWatermark) {
-      try {
-        const pane = chart.panes()[0];
-        createTextWatermark(pane, {
-          horzAlign: "center",
-          vertAlign: "center",
-          lines: [
-            {
-              text: watermarkText,
-              color: "rgba(148,163,184,0.07)",
-              fontSize: 42,
-              fontStyle: "bold",
-            },
-          ],
-        });
-      } catch {
-        // ignore
-      }
-    }
+    chart.subscribeClick((param) => {
+      if (toolRef.current.tool !== "pointer" || !param.point) return;
+      setSelectedDrawing(drawingsPrimitiveRef.current?.hit(param.point.x, param.point.y) ?? null);
+    });
 
     chart.subscribeCrosshairMove((param) => {
       const data = param.seriesData.get(mainSeriesRef.current as ISeriesApi<"Candlestick">) as
@@ -381,7 +373,14 @@ export function TradingChart({
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    if (mainSeriesRef.current) chart.removeSeries(mainSeriesRef.current);
+    if (mainSeriesRef.current) {
+      try {
+        mainSeriesRef.current.detachPrimitive(drawingsPrimitiveRef.current!);
+      } catch {
+        /* already detached */
+      }
+      chart.removeSeries(mainSeriesRef.current);
+    }
     indicatorSeriesRef.current.forEach((s) => chart.removeSeries(s.series));
     indicatorSeriesRef.current = [];
     if (volumeSeriesRef.current) chart.removeSeries(volumeSeriesRef.current);
@@ -391,18 +390,19 @@ export function TradingChart({
 
     const meta = marketData.getSymbol(symbol);
     const decimals = Math.min(meta?.decimals ?? 2, 5);
+    const bars = sanitizeCandles(candles);
 
     let main: ISeriesApi<"Candlestick" | "Line" | "Area">;
     if (chartType === "candles") {
       main = chart.addSeries(CandlestickSeries, {
-        upColor: "#34d399",
-        downColor: "#fb7185",
+        upColor: "#20C997",
+        downColor: "#F05D6C",
         borderVisible: false,
-        wickUpColor: "#34d399",
-        wickDownColor: "#fb7185",
+        wickUpColor: "#20C997",
+        wickDownColor: "#F05D6C",
         priceFormat: { type: "price", precision: decimals, minMove: 1 / Math.pow(10, decimals) },
       });
-      const data = candles.map((c) => ({
+      const data = bars.map((c) => ({
         time: c.time as UTCTimestamp,
         open: c.open,
         high: c.high,
@@ -412,26 +412,27 @@ export function TradingChart({
       main.setData(data);
     } else if (chartType === "line") {
       main = chart.addSeries(LineSeries, {
-        color: "#818cf8",
+        color: "#638BFF",
         lineWidth: 2,
         priceFormat: { type: "price", precision: decimals, minMove: 1 / Math.pow(10, decimals) },
       });
       main.setData(
-        candles.map((c) => ({ time: c.time as UTCTimestamp, value: c.close }))
+        bars.map((c) => ({ time: c.time as UTCTimestamp, value: c.close }))
       );
     } else {
       main = chart.addSeries(AreaSeries, {
-        lineColor: "#818cf8",
-        topColor: "rgba(99,102,241,0.32)",
-        bottomColor: "rgba(99,102,241,0.02)",
+        lineColor: "#638BFF",
+        topColor: "rgba(99,139,255,0.28)",
+        bottomColor: "rgba(99,139,255,0.02)",
         lineWidth: 2,
         priceFormat: { type: "price", precision: decimals, minMove: 1 / Math.pow(10, decimals) },
       });
       main.setData(
-        candles.map((c) => ({ time: c.time as UTCTimestamp, value: c.close }))
+        bars.map((c) => ({ time: c.time as UTCTimestamp, value: c.close }))
       );
     }
     mainSeriesRef.current = main;
+    main.attachPrimitive(drawingsPrimitiveRef.current!);
 
     if (showVolume) {
       const vol = chart.addSeries(HistogramSeries, {
@@ -441,10 +442,10 @@ export function TradingChart({
         priceLineVisible: false,
       });
       vol.setData(
-        candles.map((c) => ({
+        bars.map((c) => ({
           time: c.time as UTCTimestamp,
           value: c.volume,
-          color: c.close >= c.open ? "rgba(52,211,153,0.28)" : "rgba(251,113,133,0.28)",
+          color: c.close >= c.open ? "rgba(32,201,151,0.35)" : "rgba(240,93,108,0.35)",
         }))
       );
       chart.priceScale("").applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
@@ -453,13 +454,13 @@ export function TradingChart({
 
     // rebuild indicators
     for (const ind of indicators) {
-      addIndicator(chart, ind, candles);
+      addIndicator(chart, ind, bars);
     }
 
     chart.timeScale().fitContent();
     const interval = TIMEFRAME_SECONDS[timeframe];
-    if (interval <= 3600) {
-      chart.timeScale().setVisibleLogicalRange({ from: candles.length - 130, to: candles.length + 4 });
+    if (interval <= 3600 && bars.length > 0) {
+      chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, bars.length - 130), to: bars.length + 4 });
     }
     updatePaneRect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -476,6 +477,9 @@ export function TradingChart({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indicators]);
 
+  useEffect(() => {
+    drawingsPrimitiveRef.current?.setDrawings(draft ? [...drawings, draft] : drawings, selectedDrawing);
+  }, [drawings, draft, selectedDrawing]);
 
   // ---- coordinate helpers ----
   const toXY = useCallback((time: number, price: number) => {
@@ -503,6 +507,7 @@ export function TradingChart({
     if (tool.tool !== "pointer") {
       const tp = toTP(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
       if (!tp) return;
+      const logical = chartRef.current?.timeScale().coordinateToLogical(e.nativeEvent.offsetX);
       const d: Drawing = {
         id: uid("dr"),
         kind: tool.tool,
@@ -510,6 +515,8 @@ export function TradingChart({
         endTime: tp.time,
         startPrice: tp.price,
         endPrice: tp.price,
+        startLogical: logical ?? undefined,
+        endLogical: logical ?? undefined,
         color: tool.color,
       };
       setDraft(d);
@@ -532,7 +539,8 @@ export function TradingChart({
     if (draft) {
       const tp = toTP(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
       if (!tp) return;
-      setDraft({ ...draft, endTime: tp.time, endPrice: tp.price });
+      const logical = chartRef.current?.timeScale().coordinateToLogical(e.nativeEvent.offsetX);
+      setDraft({ ...draft, endTime: tp.time, endPrice: tp.price, endLogical: logical ?? draft.endLogical });
     }
     if (dragState) {
       const tp = toTP(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
@@ -626,34 +634,23 @@ export function TradingChart({
           <ApiDown label="market data unreachable" className="border-2 shadow-xl shadow-black/40" />
         </div>
       )}
-      {overlayVisible && (
-        <svg
-          className="absolute cursor-crosshair select-none"
-          style={{ left: paneRect.x, top: paneRect.y, width: paneRect.w, height: paneRect.h }}
+      {tool.tool !== "pointer" && overlayVisible && (
+        <div
+          className="absolute cursor-crosshair"
+          style={{ left: paneRect.x, top: paneRect.y, width: Math.max(0, paneRect.w - 44), height: paneRect.h }}
           onPointerDown={onOverlayPointerDown}
           onPointerMove={onOverlayPointerMove}
           onPointerUp={onOverlayPointerUp}
-        >
-          {drawings.map((d) => (
-            <DrawingShape
-              key={d.id}
-              drawing={d}
-              toXY={toXY}
-              selected={selectedDrawing === d.id}
-              onSelect={() => setSelectedDrawing(d.id)}
-            />
-          ))}
-          {draft && <DraftShape drawing={draft} toXY={toXY} />}
-        </svg>
+        />
       )}
-      {tool.tool !== "pointer" && (
+      {tool.tool !== "pointer" && tool.tool in TOOL_ICONS && (
         <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-lg border border-line bg-overlay/95 px-3 py-1.5 text-[11px] text-secondary backdrop-blur">
-          Drawing: {TOOL_ICONS[tool.tool].label} â€” click & drag on the chart
+          Drawing: {TOOL_ICONS[tool.tool as keyof typeof TOOL_ICONS].label} — click and drag. Chart pan stays available on Select.
         </div>
       )}
       {/* Toolbar */}
       <div className="absolute right-2 top-2 flex flex-col gap-1 rounded-xl border border-line bg-overlay/90 p-1 backdrop-blur">
-        {(Object.keys(TOOL_ICONS) as Array<"pointer" | DrawingKind>).map((t) => {
+        {(Object.keys(TOOL_ICONS) as Array<keyof typeof TOOL_ICONS>).map((t) => {
           const Icon = TOOL_ICONS[t].icon;
           return (
             <button

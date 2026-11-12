@@ -1,5 +1,6 @@
 import type {
   Candle,
+  DataQuality,
   EconomicEvent,
   NewsItem,
   Quote,
@@ -24,6 +25,7 @@ export class RealMarketDataProvider implements MarketDataProvider {
 
   private quotesCache = new Map<string, Quote>();
   private candlesCache = new Map<string, Candle[]>();
+  private candleQuality = new Map<string, DataQuality>();
   private sparkCache = new Map<string, number[]>();
   private news: NewsItem[] = [];
   private calendar: EconomicEvent[] = [];
@@ -75,15 +77,21 @@ export class RealMarketDataProvider implements MarketDataProvider {
       const json = (await res.json()) as { ok?: boolean; candles?: Candle[] };
       if (!json.ok || !json.candles || json.candles.length === 0) throw new Error("candles unavailable");
       this.candlesCache.set(key, json.candles);
+      this.candleQuality.set(key, "delayed");
       this.sparkCache.delete(symbol);
       this._status = { ...this._status, candles: true };
       marketEvents.emit();
       return json.candles;
     } catch {
       this._status = { ...this._status, candles: false };
+      if (this.candlesCache.has(key)) this.candleQuality.set(key, "cached");
       marketEvents.emit();
-      return [];
+      return this.candlesCache.get(key) ?? [];
     }
+  }
+
+  getCandleQuality(symbol: string, timeframe: Timeframe): DataQuality | null {
+    return this.candleQuality.get(`${symbol}:${timeframe}`) ?? null;
   }
 
   async getSparklineAsync(symbol: string, points = 24): Promise<number[]> {

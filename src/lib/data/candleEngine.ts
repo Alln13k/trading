@@ -14,6 +14,9 @@ export const TIMEFRAME_SECONDS: Record<Timeframe, number> = {
 
 export const TIMEFRAMES: Timeframe[] = ["1m", "5m", "15m", "30m", "1h", "4h", "1D", "1W", "1M"];
 
+/** Phase 2 chart toolbar. Monthly stays in the type for the provider, not this control. */
+export const CHART_TIMEFRAMES: Timeframe[] = ["1m", "5m", "15m", "30m", "1h", "4h", "1D", "1W"];
+
 export function candleSeriesForChart(candles: Candle[]) {
   return candles.map((c) => ({
     time: c.time as unknown as import("lightweight-charts").UTCTimestamp,

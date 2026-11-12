@@ -1,4 +1,4 @@
-import type { Candle, EconomicEvent, NewsItem, Quote, SymbolMeta, Timeframe } from "@/lib/types";
+import type { Candle, DataQuality, EconomicEvent, NewsItem, Quote, SymbolMeta, Timeframe } from "@/lib/types";
 
 /**
  * Status of the live data feeds. `null` = not fetched yet (loading),
@@ -32,6 +32,8 @@ export interface MarketDataProvider {
   getNewsAsync?(): Promise<NewsItem[]>;
   getEconomicCalendarAsync?(): Promise<EconomicEvent[]>;
   hasLiveCandles?(symbol: string, timeframe: Timeframe): boolean;
+  /** delayed after a successful fetch, cached if a later fetch failed, null if never loaded. */
+  getCandleQuality?(symbol: string, timeframe: Timeframe): DataQuality | null;
 }
 
 /** Overview core book — labels in UI: BTC/USD, ETH/USD, XAU/USD, EUR/USD + indices. */

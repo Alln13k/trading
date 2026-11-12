@@ -38,6 +38,9 @@ export interface Drawing {
   endTime: number;
   startPrice: number;
   endPrice: number;
+  /** Bar index on the time scale so the primitive stays put while scrolling. */
+  startLogical?: number;
+  endLogical?: number;
   color: string;
   label?: string;
 }
@@ -57,6 +60,14 @@ export interface SavedLayout {
 }
 
 interface ChartState {
+  symbol: string;
+  timeframe: Timeframe;
+  chartType: "candles" | "line" | "area";
+  showVolume: boolean;
+  setSymbol: (symbol: string) => void;
+  setTimeframe: (timeframe: Timeframe) => void;
+  setChartType: (chartType: "candles" | "line" | "area") => void;
+  setShowVolume: (show: boolean) => void;
   savedLayouts: SavedLayout[];
   saveLayout: (l: Omit<SavedLayout, "id" | "createdAt">) => void;
   deleteLayout: (id: string) => void;
@@ -67,6 +78,14 @@ const SEED: SavedLayout[] = [];
 export const useChartStore = create<ChartState>()(
   persist(
     (set) => ({
+      symbol: "BTC",
+      timeframe: "1h",
+      chartType: "candles",
+      showVolume: true,
+      setSymbol: (symbol) => set({ symbol }),
+      setTimeframe: (timeframe) => set({ timeframe }),
+      setChartType: (chartType) => set({ chartType }),
+      setShowVolume: (showVolume) => set({ showVolume }),
       savedLayouts: SEED,
       saveLayout: (l) =>
         set((s) => ({
@@ -75,6 +94,6 @@ export const useChartStore = create<ChartState>()(
       deleteLayout: (id) =>
         set((s) => ({ savedLayouts: s.savedLayouts.filter((l) => l.id !== id) })),
     }),
-    { name: "trading-chart-layouts-v2" }
+    { name: "trading-chart-layouts-v3" }
   )
 );
