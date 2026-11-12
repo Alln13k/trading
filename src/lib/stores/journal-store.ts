@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Trade } from "@/lib/types";
 import { uid } from "@/lib/utils";
+import { persistStorage } from "@/lib/persist/sqlite-storage";
 
 export interface JournalComment {
   id: string;
@@ -70,6 +71,6 @@ trades: [],
         })),
       resetJournal: () => set({ trades: [], comments: {} }),
     }),
-    { name: "trading-journal-v2" }
+    { name: "trading-journal-v2", storage: persistStorage() }
   )
 );

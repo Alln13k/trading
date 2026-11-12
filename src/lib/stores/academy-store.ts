@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AcademyLevel } from "@/lib/content/lessons";
 import { quizFor } from "@/lib/content/quizzes";
+import { persistStorage } from "@/lib/persist/sqlite-storage";
 
 export interface QuizAttempt {
   answers: Record<string, string>;
@@ -92,6 +93,6 @@ export const useAcademyStore = create<AcademyState>()(
         return scored;
       },
     }),
-    { name: "trading-academy-v1" }
+    { name: "trading-academy-v1", storage: persistStorage() }
   )
 );

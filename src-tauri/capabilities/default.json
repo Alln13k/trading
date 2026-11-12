@@ -1,0 +1,15 @@
+{
+  "identifier": "default",
+  "description": "Next.js origin inside the desktop window, plus the local shell.",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"]
+  },
+  "permissions": [
+    "core:default",
+    "sql:default",
+    "sql:allow-load",
+    "sql:allow-execute",
+    "sql:allow-select"
+  ]
+}

@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+/** localStorage only. `assertSqliteKey` rejects this store's name, so the key never enters SQLite. */
 interface AiSettingsState {
   baseUrl: string;
   apiKey: string;

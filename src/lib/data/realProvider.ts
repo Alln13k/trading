@@ -10,6 +10,7 @@ import type {
 import type { MarketDataProvider, MarketDataStatus } from "@/lib/data/mockProvider";
 import { getSymbolMeta, getSymbolsByCategory, searchSymbols } from "@/lib/data/symbols";
 import { marketEvents } from "@/lib/data/marketEvents";
+import { loadCachedQuotes, saveQuoteCache } from "@/lib/persist/quote-cache";
 
 /**
  * Live provider: quotes, candles, news and calendar come from the app's own
@@ -41,6 +42,7 @@ export class RealMarketDataProvider implements MarketDataProvider {
   }
 
   async getQuotesAsync(symbols: string[]): Promise<Map<string, Quote>> {
+    await this.hydrateQuoteCache(symbols);
     try {
       const res = await fetch(`/api/market/quote?symbols=${encodeURIComponent(symbols.join(","))}`, {
         cache: "no-store",
@@ -54,6 +56,9 @@ export class RealMarketDataProvider implements MarketDataProvider {
       }
       this._status = { ...this._status, quotes: true };
       marketEvents.emit();
+      void saveQuoteCache([...map.values()]).catch(() => {
+        console.warn("Quote cache write failed");
+      });
       return map;
     } catch {
       this._status = { ...this._status, quotes: false };
@@ -139,6 +144,17 @@ export class RealMarketDataProvider implements MarketDataProvider {
   }
 
   // ---- sync interface (cache-first, empty when nothing was fetched) ----
+
+  private async hydrateQuoteCache(symbols: string[]) {
+    try {
+      const stored = await loadCachedQuotes(symbols);
+      for (const quote of stored) {
+        if (!this.quotesCache.has(quote.symbol)) this.quotesCache.set(quote.symbol, quote);
+      }
+    } catch {
+      console.warn("Quote cache read failed");
+    }
+  }
 
   getQuote(symbol: string): Quote | undefined {
     return this.quotesCache.get(symbol);

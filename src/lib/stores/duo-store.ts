@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { uid } from "@/lib/utils";
+import { persistStorage } from "@/lib/persist/sqlite-storage";
 
 export interface SharedNote {
   id: string;
@@ -92,6 +93,6 @@ export const useDuoStore = create<DuoState>()(
         return comment;
       },
     }),
-    { name: "trading-duo-v1" }
+    { name: "trading-duo-v1", storage: persistStorage() }
   )
 );

@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { uid } from "@/lib/utils";
+import { persistStorage } from "@/lib/persist/sqlite-storage";
 import { feeOn, netPnl, rMultiple, slippedFill, type Side } from "@/lib/paper/math";
 
 export interface PaperSettings {
@@ -238,7 +239,7 @@ export const usePaperStore = create<PaperState>()(
           lastError: null,
         }),
     }),
-    { name: "trading-paper-v1" }
+    { name: "trading-paper-v1", storage: persistStorage() }
   )
 );
 
