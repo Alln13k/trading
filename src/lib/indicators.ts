@@ -148,6 +148,34 @@ export function stochastic(candles: Candle[], period = 14, smooth = 3): Stochast
   return { k: kRaw, d };
 }
 
+/** Stochastic of the RSI series. Period is both the RSI length and the stochastic lookback. %D is a 3-period EMA of %K. */
+export function stochasticRsi(candles: Candle[], period = 14, smooth = 3): StochasticResult {
+  const rsiSeries = rsi(candles, period);
+  const kRaw: SeriesPoint[] = [];
+  for (let i = period - 1; i < rsiSeries.length; i++) {
+    const slice = rsiSeries.slice(i - period + 1, i + 1);
+    const high = Math.max(...slice.map((p) => p.value));
+    const low = Math.min(...slice.map((p) => p.value));
+    const value = rsiSeries[i].value;
+    kRaw.push({
+      time: rsiSeries[i].time,
+      value: high === low ? 50 : ((value - low) / (high - low)) * 100,
+    });
+  }
+  return { k: kRaw, d: emaPoints(kRaw, smooth) };
+}
+
+export function volumeSma(candles: Candle[], period = 20): SeriesPoint[] {
+  const out: SeriesPoint[] = [];
+  let sum = 0;
+  for (let i = 0; i < candles.length; i++) {
+    sum += candles[i].volume;
+    if (i >= period) sum -= candles[i - period].volume;
+    if (i >= period - 1) out.push({ time: candles[i].time, value: sum / period });
+  }
+  return out;
+}
+
 export function atr(candles: Candle[], period = 14): SeriesPoint[] {
   const out: SeriesPoint[] = [];
   const trs: number[] = [];

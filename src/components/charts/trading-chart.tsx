@@ -25,6 +25,8 @@ import {
   bollinger,
   vwap,
   stochastic,
+  stochasticRsi,
+  volumeSma,
   atr,
   type SeriesPoint,
 } from "@/lib/indicators";
@@ -267,7 +269,8 @@ export function TradingChart({
     };
   }, []);
 
-  const addIndicator = useCallback((chart: IChartApi, ind: IndicatorConfig, candlesData: Candle[]) => {
+  const addIndicator = useCallback((chart: IChartApi, ind: IndicatorConfig, candlesData: Candle[], slot: { next: number }) => {
+    if (ind.enabled === false) return;
     function px(p: SeriesPoint) {
       return { time: p.time as UTCTimestamp, value: p.value };
     }
@@ -276,56 +279,55 @@ export function TradingChart({
       priceLineVisible: false,
       crosshairMarkerVisible: false,
     };
+    const claimPane = () => {
+      const index = slot.next;
+      slot.next += 1;
+      while (chart.panes().length <= index) chart.addPane();
+      chart.panes()[index]?.setHeight(96);
+      return index;
+    };
+    const park = (index: number, series: Array<ISeriesApi<"Line" | "Histogram">>) => {
+      for (const s of series) s.moveToPane(index);
+    };
     if (ind.pane === "secondary") {
-      let panes = chart.panes();
-      if (panes.length < 2) {
-        chart.addPane(true);
-        panes = chart.panes();
-      }
-      const secPane = panes[1];
-      secPane.setHeight(110);
       if (ind.kind === "rsi") {
         const s = chart.addSeries(LineSeries, { ...base, color: ind.color, lineWidth: 2 });
         s.setData(rsi(candlesData, ind.period || 14).map(px));
-        s.createPriceLine({ price: 70, color: "rgba(251,113,133,0.45)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false });
-        s.createPriceLine({ price: 30, color: "rgba(52,211,153,0.45)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false });
-        s.createPriceLine({ price: 50, color: "rgba(148,163,184,0.25)", lineWidth: 1, lineStyle: 3, axisLabelVisible: false });
-        s.moveToPane(1);
+        s.createPriceLine({ price: 70, color: "#F05D6C", lineWidth: 1, lineStyle: 2, axisLabelVisible: false });
+        s.createPriceLine({ price: 30, color: "#20C997", lineWidth: 1, lineStyle: 2, axisLabelVisible: false });
+        s.createPriceLine({ price: 50, color: "#8B96A7", lineWidth: 1, lineStyle: 3, axisLabelVisible: false });
+        park(claimPane(), [s]);
         indicatorSeriesRef.current.push({ id: ind.id, series: s });
         return;
       }
-      if (ind.kind === "stochastic") {
-        const st = stochastic(candlesData, ind.period || 14);
+      if (ind.kind === "stochastic" || ind.kind === "stochrsi") {
+        const st = ind.kind === "stochrsi" ? stochasticRsi(candlesData, ind.period || 14) : stochastic(candlesData, ind.period || 14);
         const k = chart.addSeries(LineSeries, { ...base, color: ind.color, lineWidth: 1 });
         k.setData(st.k.map(px));
-        const d = chart.addSeries(LineSeries, { ...base, color: "#22d3ee", lineWidth: 1 });
+        const d = chart.addSeries(LineSeries, { ...base, color: "#F1F4F8", lineWidth: 1 });
         d.setData(st.d.map(px));
-        k.moveToPane(1);
-        d.moveToPane(1);
+        park(claimPane(), [k, d]);
         indicatorSeriesRef.current.push({ id: ind.id, series: k }, { id: `${ind.id}-d`, series: d });
         return;
       }
       if (ind.kind === "macd") {
-        const m = macd(candlesData);
-        const line = chart.addSeries(LineSeries, { ...base, color: "#818cf8", lineWidth: 2 });
+        const m = macd(candlesData, ind.fast || 12, ind.slow || 26, ind.signal || ind.period || 9);
+        const line = chart.addSeries(LineSeries, { ...base, color: "#638BFF", lineWidth: 2 });
         line.setData(m.macd.map(px));
-        const signal = chart.addSeries(LineSeries, { ...base, color: "#fbbf24", lineWidth: 1 });
+        const signal = chart.addSeries(LineSeries, { ...base, color: "#F1F4F8", lineWidth: 1 });
         signal.setData(m.signal.map(px));
         const hist = chart.addSeries(HistogramSeries, {
           ...base,
-          priceScaleId: "right",
           priceFormat: { type: "price", precision: 4, minMove: 0.0001 },
         });
         hist.setData(
           m.histogram.map((p) => ({
             time: p.time as UTCTimestamp,
             value: p.value,
-            color: p.value >= 0 ? "rgba(129,140,248,0.55)" : "rgba(251,191,36,0.55)",
+            color: p.value >= 0 ? "rgba(32,201,151,0.55)" : "rgba(240,93,108,0.55)",
           }))
         );
-        line.moveToPane(1);
-        signal.moveToPane(1);
-        hist.moveToPane(1);
+        park(claimPane(), [line, signal, hist]);
         indicatorSeriesRef.current.push(
           { id: ind.id, series: line },
           { id: `${ind.id}-sig`, series: signal },
@@ -336,7 +338,7 @@ export function TradingChart({
       if (ind.kind === "atr") {
         const s = chart.addSeries(LineSeries, { ...base, color: ind.color, lineWidth: 1 });
         s.setData(atr(candlesData, ind.period || 14).map(px));
-        s.moveToPane(1);
+        park(claimPane(), [s]);
         indicatorSeriesRef.current.push({ id: ind.id, series: s });
         return;
       }
@@ -366,6 +368,15 @@ export function TradingChart({
           { id: `${ind.id}-up`, series: up },
           { id: `${ind.id}-low`, series: low }
         );
+      } else if (ind.kind === "volma") {
+        const s = chart.addSeries(LineSeries, {
+          ...base,
+          color: ind.color,
+          lineWidth: 1,
+          priceScaleId: "",
+        });
+        s.setData(volumeSma(candlesData, ind.period || 20).map(px));
+        indicatorSeriesRef.current.push({ id: ind.id, series: s });
       }
     }
   }, []);
@@ -452,9 +463,9 @@ export function TradingChart({
       volumeSeriesRef.current = vol;
     }
 
-    // rebuild indicators
+    const slot = { next: 1 };
     for (const ind of indicators) {
-      addIndicator(chart, ind, bars);
+      addIndicator(chart, ind, bars, slot);
     }
 
     chart.timeScale().fitContent();
@@ -472,7 +483,10 @@ export function TradingChart({
     if (!chart) return;
     for (const s of indicatorSeriesRef.current) chart.removeSeries(s.series);
     indicatorSeriesRef.current = [];
-    for (const ind of indicators) addIndicator(chart, ind, candles);
+    const panes = chart.panes();
+    for (let i = panes.length - 1; i > 0; i--) chart.removePane(i);
+    const slot = { next: 1 };
+    for (const ind of indicators) addIndicator(chart, ind, sanitizeCandles(candles), slot);
     updatePaneRect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indicators]);

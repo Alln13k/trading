@@ -39,11 +39,12 @@ import { TradingChart } from "@/components/charts/trading-chart";
 const INDICATOR_OPTIONS: Array<{ kind: IndicatorKind; label: string; defaultPeriod: number; pane: "main" | "secondary" }> = [
   { kind: "sma", label: "SMA — Simple Moving Average", defaultPeriod: 20, pane: "main" },
   { kind: "ema", label: "EMA — Exponential Moving Average", defaultPeriod: 20, pane: "main" },
-  { kind: "rsi", label: "RSI — Relative Strength Index", defaultPeriod: 14, pane: "secondary" },
-  { kind: "macd", label: "MACD — Moving Average Conv. Div.", defaultPeriod: 12, pane: "secondary" },
   { kind: "bollinger", label: "Bollinger Bands", defaultPeriod: 20, pane: "main" },
   { kind: "vwap", label: "VWAP — Volume Weighted Avg. Price", defaultPeriod: 0, pane: "main" },
-  { kind: "stochastic", label: "Stochastic Oscillator", defaultPeriod: 14, pane: "secondary" },
+  { kind: "volma", label: "Vol MA — Volume moving average", defaultPeriod: 20, pane: "main" },
+  { kind: "rsi", label: "RSI — Relative Strength Index", defaultPeriod: 14, pane: "secondary" },
+  { kind: "macd", label: "MACD — Moving Average Conv. Div.", defaultPeriod: 9, pane: "secondary" },
+  { kind: "stochrsi", label: "Stoch RSI — Stochastic RSI", defaultPeriod: 14, pane: "secondary" },
   { kind: "atr", label: "ATR — Average True Range", defaultPeriod: 14, pane: "secondary" },
 ];
 
@@ -80,8 +81,15 @@ function ChartsInner() {
     if (symbol !== storedSymbol) setStoredSymbol(symbol);
   }, [symbol, storedSymbol, setSelectedSymbol, setStoredSymbol]);
   const [indicators, setIndicators] = useState<IndicatorConfig[]>([
-    { id: uid("ind"), kind: "ema", period: 20, color: "#22d3ee", pane: "main" },
-    { id: uid("ind"), kind: "ema", period: 50, color: "#a78bfa", pane: "main" },
+    { id: "ind_ema", kind: "ema", period: 20, color: "#638BFF", pane: "main", enabled: true },
+    { id: "ind_sma", kind: "sma", period: 50, color: "#8B96A7", pane: "main", enabled: false },
+    { id: "ind_bb", kind: "bollinger", period: 20, color: "#F1F4F8", pane: "main", enabled: false },
+    { id: "ind_vwap", kind: "vwap", period: 0, color: "#d4a017", pane: "main", enabled: false },
+    { id: "ind_vol", kind: "volma", period: 20, color: "#638BFF", pane: "main", enabled: false },
+    { id: "ind_rsi", kind: "rsi", period: 14, color: "#638BFF", pane: "secondary", enabled: true },
+    { id: "ind_macd", kind: "macd", period: 9, fast: 12, slow: 26, signal: 9, color: "#638BFF", pane: "secondary", enabled: false },
+    { id: "ind_srsi", kind: "stochrsi", period: 14, color: "#20C997", pane: "secondary", enabled: false },
+    { id: "ind_atr", kind: "atr", period: 14, color: "#F05D6C", pane: "secondary", enabled: false },
   ]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
   const [tool, setTool] = useState<{ tool: "pointer" | Drawing["kind"]; color: string }>({
@@ -147,7 +155,17 @@ function ChartsInner() {
     const opt = INDICATOR_OPTIONS.find((o) => o.kind === newIndKind)!;
     setIndicators((prev) => [
       ...prev,
-      { id: uid("ind"), kind: newIndKind, period: newIndPeriod, color: newIndColor, pane: opt.pane },
+      {
+        id: uid("ind"),
+        kind: newIndKind,
+        period: newIndPeriod,
+        fast: newIndKind === "macd" ? 12 : undefined,
+        slow: newIndKind === "macd" ? 26 : undefined,
+        signal: newIndKind === "macd" ? newIndPeriod : undefined,
+        enabled: true,
+        color: newIndColor,
+        pane: opt.pane,
+      },
     ]);
     setIndicatorModal(false);
     push(`Added ${opt.label.split(" ")[0]}`, "success");
@@ -328,9 +346,62 @@ function ChartsInner() {
                 key={ind.id}
                 className="inline-flex items-center gap-1.5 rounded-md border border-line bg-raised/60 px-2 py-1 text-[11px] text-secondary"
               >
+                <input
+                  type="checkbox"
+                  checked={ind.enabled !== false}
+                  aria-label={`Enable ${opt?.label ?? ind.kind}`}
+                  onChange={(e) =>
+                    setIndicators((prev) =>
+                      prev.map((x) => (x.id === ind.id ? { ...x, enabled: e.target.checked } : x))
+                    )
+                  }
+                />
                 <span className="size-2 rounded-full" style={{ background: ind.color }} />
                 {opt?.label.split(" ")[0]}
-                {ind.period > 0 && <span className="text-muted">({ind.period})</span>}
+                {ind.kind !== "vwap" && (
+                  <input
+                    type="number"
+                    min={2}
+                    max={400}
+                    value={ind.period || ""}
+                    aria-label={`${ind.kind} period`}
+                    className="w-12 rounded border border-line bg-surface px-1 py-0.5 text-[11px] text-primary"
+                    onChange={(e) => {
+                      const period = Number(e.target.value);
+                      setIndicators((prev) =>
+                        prev.map((x) => (x.id === ind.id ? { ...x, period: Number.isFinite(period) ? period : x.period } : x))
+                      );
+                    }}
+                  />
+                )}
+                {ind.kind === "macd" && (
+                  <>
+                    <input
+                      type="number"
+                      min={2}
+                      value={ind.fast ?? 12}
+                      aria-label="MACD fast"
+                      className="w-12 rounded border border-line bg-surface px-1 py-0.5 text-[11px]"
+                      onChange={(e) =>
+                        setIndicators((prev) =>
+                          prev.map((x) => (x.id === ind.id ? { ...x, fast: Number(e.target.value) } : x))
+                        )
+                      }
+                    />
+                    <input
+                      type="number"
+                      min={2}
+                      value={ind.slow ?? 26}
+                      aria-label="MACD slow"
+                      className="w-12 rounded border border-line bg-surface px-1 py-0.5 text-[11px]"
+                      onChange={(e) =>
+                        setIndicators((prev) =>
+                          prev.map((x) => (x.id === ind.id ? { ...x, slow: Number(e.target.value) } : x))
+                        )
+                      }
+                    />
+                  </>
+                )}
                 <button
                   onClick={() => setIndicators((prev) => prev.filter((x) => x.id !== ind.id))}
                   className="text-muted transition-colors hover:text-down"

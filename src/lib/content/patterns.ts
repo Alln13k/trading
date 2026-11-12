@@ -1,10 +1,14 @@
+import type { ScanRuleId } from "@/lib/analysis/scan";
+
 export interface PatternDef {
   id: string;
   name: string;
-  kind: "reversal" | "continuation" | "candlestick";
+  kind: "reversal" | "continuation" | "candlestick" | "structure";
   bias: "bull" | "bear" | "both";
   description: string;
   invalidation: string;
+  scannerRuleId?: ScanRuleId;
+  scannerNote?: string;
 }
 
 export const PATTERNS: PatternDef[] = [
@@ -59,6 +63,25 @@ export const PATTERNS: PatternDef[] = [
     description:
       "Body fully covers the prior body. Context (location in a swing) matters more than the candle alone.",
     invalidation: "Immediate close back through the engulfing midpoint.",
+    scannerRuleId: "engulfing",
+  },
+  {
+    id: "doji",
+    name: "Doji",
+    kind: "candlestick",
+    bias: "both",
+    description: "Open and close nearly equal. A pause in the range, not a direction by itself.",
+    invalidation: "A close that never leaves the doji range does not confirm a break.",
+    scannerRuleId: "doji",
+  },
+  {
+    id: "hammer",
+    name: "Hammer",
+    kind: "candlestick",
+    bias: "bull",
+    description: "Small body near the high and a long lower wick. The scanner only flags this wick shape.",
+    invalidation: "A close back through the hammer low.",
+    scannerRuleId: "hammer",
   },
   {
     id: "pin",
@@ -67,6 +90,17 @@ export const PATTERNS: PatternDef[] = [
     bias: "both",
     description: "Long wick, small body. Shows rejection of a price area on that timeframe only.",
     invalidation: "A close beyond the wick extreme.",
+    scannerRuleId: "hammer",
+    scannerNote: "The scanner flags hammers (long lower wick). Other pin shapes are not scanned.",
+  },
+  {
+    id: "swings",
+    name: "Swing sequence HH / HL / LH / LL",
+    kind: "structure",
+    bias: "both",
+    description: "Successive pivot highs and lows. HH+HL is an up sequence. LH+LL is a down sequence. Mixed is mixed.",
+    invalidation: "A new pivot that breaks the sequence.",
+    scannerRuleId: "swing",
   },
   {
     id: "triangle",

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { PATTERNS } from "@/lib/content/patterns";
+import { SCAN_RULES } from "@/lib/analysis/scan";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +29,16 @@ export default function EncyclopediaPage() {
                 <span className="font-medium text-primary">Invalidation: </span>
                 {p.invalidation}
               </p>
+              {p.scannerRuleId ? (
+                <p>
+                  <Link href={`/dashboard/scanner?rule=${p.scannerRuleId}`} className="text-accent">
+                    Scanner rule: {SCAN_RULES[p.scannerRuleId].label}
+                  </Link>
+                  {p.scannerNote ? ` ${p.scannerNote}` : ""}
+                </p>
+              ) : (
+                <p>No scanner rule flags this pattern yet.</p>
+              )}
             </CardContent>
           </Card>
         ))}

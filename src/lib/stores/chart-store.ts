@@ -13,12 +13,19 @@ export type IndicatorKind =
   | "bollinger"
   | "vwap"
   | "stochastic"
+  | "stochrsi"
+  | "volma"
   | "atr";
 
 export interface IndicatorConfig {
   id: string;
   kind: IndicatorKind;
   period: number;
+  fast?: number;
+  slow?: number;
+  signal?: number;
+  /** Omitted means enabled, so older saved layouts still draw. */
+  enabled?: boolean;
   color: string;
   pane: "main" | "secondary";
 }
