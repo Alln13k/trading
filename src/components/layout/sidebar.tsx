@@ -16,6 +16,7 @@ import {
   BookMarked,
   GraduationCap,
   Users,
+  Bot,
   Settings,
   ChevronsLeft,
   ChevronsRight,
@@ -39,6 +40,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/journal", label: "Trading Journal", icon: BookMarked },
   { href: "/dashboard/academy", label: "Academy", icon: GraduationCap },
   { href: "/dashboard/duo", label: "Duo Workspace", icon: Users },
+  { href: "/dashboard/assistant", label: "Assistant", icon: Bot },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

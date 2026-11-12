@@ -17,6 +17,7 @@ import {
   CalendarClock,
   ScanSearch,
   Settings,
+  Bot,
   Plus,
 } from "lucide-react";
 import { marketData } from "@/lib/data/provider";
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/journal", label: "Trading Journal", icon: NotebookPen, keywords: "journal notes log" },
   { href: "/dashboard/academy", label: "Academy", icon: Newspaper, keywords: "learn lessons" },
   { href: "/dashboard/duo", label: "Duo Workspace", icon: Bell, keywords: "allan alex users" },
+  { href: "/dashboard/assistant", label: "Assistant", icon: Bot, keywords: "ai assistant ask" },
   { href: "/dashboard/settings", label: "Settings", icon: Settings, keywords: "settings preferences" },
 ];
 

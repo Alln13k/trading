@@ -7,6 +7,7 @@ import { displaySymbol } from "@/lib/data/symbols";
 import { marketData } from "@/lib/data/provider";
 import type { Timeframe } from "@/lib/types";
 import { analyzeCandles, type AnalysisResult } from "@/lib/analysis/snapshot";
+import { useAnalyzerReadStore, type StoredAnalyzerRead } from "@/lib/stores/analyzer-read-store";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataBadge } from "@/components/data/data-badge";
@@ -40,6 +41,11 @@ export default function AnalyzerPage() {
       cancel = true;
     };
   }, [symbol, timeframe]);
+
+  useEffect(() => {
+    if (!result || quality === "loading") return;
+    useAnalyzerReadStore.getState().setRead(toStoredRead(symbol, timeframe, quality, result));
+  }, [result, quality, symbol, timeframe]);
 
   const meta = marketData.getSymbol(symbol);
 
@@ -155,6 +161,29 @@ export default function AnalyzerPage() {
       )}
     </div>
   );
+}
+
+function toStoredRead(
+  symbol: string,
+  timeframe: string,
+  quality: "delayed" | "cached" | "unavailable",
+  result: AnalysisResult
+): StoredAnalyzerRead {
+  if (!result.available) {
+    return { symbol, timeframe, quality, available: false, reason: result.reason };
+  }
+  return {
+    symbol,
+    timeframe,
+    quality,
+    available: true,
+    active: result.reads.active,
+    activeWhy: result.reads[result.reads.active],
+    lastClose: result.lastClose,
+    rsi: "value" in result.rsi ? result.rsi.value : undefined,
+    atr: "atr" in result.volatility ? result.volatility.atr : undefined,
+    macdHistogram: "histogram" in result.macd ? result.macd.histogram : undefined,
+  };
 }
 
 function Fact({ title, body }: { title: string; body: string }) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   User,
   Palette,
@@ -16,6 +16,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useSettingsStore, useCurrentUser } from "@/lib/stores/settings-store";
+import { useAiSettingsStore } from "@/lib/stores/ai-settings-store";
 import { useToastStore } from "@/lib/stores/toast-store";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -36,6 +37,18 @@ const ACCENTS: Array<{ value: AppSettings["appearance"]["accent"]; label: string
 
 export default function SettingsPage() {
   const settings = useSettingsStore((s) => s.settings);
+  const aiBase = useAiSettingsStore((s) => s.baseUrl);
+  const aiModel = useAiSettingsStore((s) => s.model);
+  const aiKeySaved = useAiSettingsStore((s) => s.apiKey.length > 0);
+  const setAi = useAiSettingsStore((s) => s.setAi);
+  const clearAiKey = useAiSettingsStore((s) => s.clearKey);
+  const [aiUrl, setAiUrl] = useState(aiBase);
+  const [aiModelDraft, setAiModelDraft] = useState(aiModel);
+  const [aiKeyDraft, setAiKeyDraft] = useState("");
+  useEffect(() => {
+    setAiUrl(aiBase);
+    setAiModelDraft(aiModel);
+  }, [aiBase, aiModel]);
   const currentUserId = useSettingsStore((s) => s.currentUserId);
   const setCurrentUser = useSettingsStore((s) => s.setCurrentUser);
   const updateProfile = useSettingsStore((s) => s.updateProfile);
@@ -402,6 +415,56 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Assistant endpoint</CardTitle>
+            <CardDescription>
+              Optional OpenAI-compatible base URL, model, and key. Stored in this browser only. The key is not shown again and is not written to the repo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input value={aiUrl} onChange={(e) => setAiUrl(e.target.value)} placeholder="Base URL" autoComplete="off" />
+            <Input value={aiModelDraft} onChange={(e) => setAiModelDraft(e.target.value)} placeholder="Model name" autoComplete="off" />
+            <Input
+              type="password"
+              value={aiKeyDraft}
+              onChange={(e) => setAiKeyDraft(e.target.value)}
+              placeholder={aiKeySaved ? "Key saved on this browser — type to replace" : "API key"}
+              autoComplete="off"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  setAi({
+                    baseUrl: aiUrl,
+                    model: aiModelDraft,
+                    ...(aiKeyDraft.trim() ? { apiKey: aiKeyDraft } : {}),
+                  });
+                  setAiKeyDraft("");
+                  push("Assistant settings saved on this browser", "success");
+                }}
+              >
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  clearAiKey();
+                  setAiKeyDraft("");
+                  push("Assistant key removed from this browser", "success");
+                }}
+              >
+                Clear key
+              </Button>
+            </div>
+            <p className="text-[12px] text-muted">
+              {aiKeySaved ? "A key is saved in localStorage." : "No key is saved. The assistant stays on local notes."}
+            </p>
           </CardContent>
         </Card>
 

@@ -12,5 +12,6 @@ export const APP_NAV = [
   { href: "/dashboard/journal", label: "Trading Journal" },
   { href: "/dashboard/academy", label: "Academy" },
   { href: "/dashboard/duo", label: "Duo Workspace" },
+  { href: "/dashboard/assistant", label: "Assistant" },
   { href: "/dashboard/settings", label: "Settings" },
 ] as const;
