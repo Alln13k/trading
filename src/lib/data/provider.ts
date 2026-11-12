@@ -11,6 +11,9 @@ import type { MarketDataProvider } from "@/lib/data/mockProvider";
  */
 export const DATA_SOURCE: "demo" | "live" = "live";
 
+export const PROVIDER_ATTRIBUTION =
+  "Quotes via Yahoo Finance unofficial chart API. Not an exchange feed. Typically delayed. Never treated as live.";
+
 export const marketData: MarketDataProvider = new RealMarketDataProvider();
 
 export function isDemoMode() {

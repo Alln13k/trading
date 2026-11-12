@@ -30,17 +30,19 @@ import { SymbolIcon } from "@/components/ui/avatar";
 import { CATEGORY_LABELS } from "@/lib/data/symbols";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, keywords: "home overview" },
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, keywords: "home overview" },
   { href: "/dashboard/markets", label: "Markets", icon: BarChart3, keywords: "prices market" },
   { href: "/dashboard/charts", label: "Charts", icon: CandlestickChart, keywords: "graph chart candles" },
-  { href: "/dashboard/watchlist", label: "Watchlist", icon: Star, keywords: "watch list" },
-  { href: "/dashboard/portfolio", label: "Portfolio", icon: Briefcase, keywords: "holdings assets" },
-  { href: "/dashboard/positions", label: "Positions", icon: ArrowLeftRight, keywords: "paper trade open" },
-  { href: "/dashboard/journal", label: "Trade Journal", icon: NotebookPen, keywords: "journal notes log" },
-  { href: "/dashboard/alerts", label: "Alerts", icon: Bell, keywords: "notifications alert" },
-  { href: "/dashboard/news", label: "News", icon: Newspaper, keywords: "news headlines" },
-  { href: "/dashboard/calendar", label: "Economic Calendar", icon: CalendarClock, keywords: "calendar events eco" },
-  { href: "/dashboard/analysis", label: "Analysis", icon: ScanSearch, keywords: "analysis technical" },
+  { href: "/dashboard/analyzer", label: "Market Analyzer", icon: ScanSearch, keywords: "analysis technical" },
+  { href: "/dashboard/scanner", label: "Pattern Scanner", icon: ScanSearch, keywords: "pattern scan" },
+  { href: "/dashboard/encyclopedia", label: "Pattern Encyclopedia", icon: Star, keywords: "encyclopedia pattern" },
+  { href: "/dashboard/strategies", label: "Strategies", icon: NotebookPen, keywords: "strategy notes" },
+  { href: "/dashboard/risk", label: "Risk Calculator", icon: Briefcase, keywords: "risk size" },
+  { href: "/dashboard/paper", label: "Paper Trading", icon: ArrowLeftRight, keywords: "paper trade open" },
+  { href: "/dashboard/performance", label: "Performance", icon: BarChart3, keywords: "stats pnl" },
+  { href: "/dashboard/journal", label: "Trading Journal", icon: NotebookPen, keywords: "journal notes log" },
+  { href: "/dashboard/academy", label: "Academy", icon: Newspaper, keywords: "learn lessons" },
+  { href: "/dashboard/duo", label: "Duo Workspace", icon: Bell, keywords: "allan alex users" },
   { href: "/dashboard/settings", label: "Settings", icon: Settings, keywords: "settings preferences" },
 ];
 

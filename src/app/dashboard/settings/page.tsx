@@ -308,12 +308,12 @@ export default function SettingsPage() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-up opacity-60" />
                   <span className="relative inline-flex size-2 rounded-full bg-up" />
                 </span>
-                <p className="text-[13px] font-semibold text-primary">Live Data Provider</p>
+                <p className="text-[13px] font-semibold text-primary">Yahoo Finance (delayed)</p>
               </div>
               <p className="mt-1.5 text-[11px] leading-relaxed text-secondary">
-                Quotes, candles and news come live from Yahoo Finance; the economic calendar is
-                pulled from Forex Factory. If a source is unreachable, the app gracefully falls
-                back to deterministic simulated data — the fallback is never marked as live.
+                Quotes and candles proxy Yahoo Finance unofficial APIs. They are labeled delayed or
+                cached — never live. If a source fails, the UI shows unavailable. Simulated prices
+                are not used.
               </p>
             </div>
             <div className="flex items-center gap-2 text-[11px] text-muted">

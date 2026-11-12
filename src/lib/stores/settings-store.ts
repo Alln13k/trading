@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
   data: {
     autoRefresh: true,
-    refreshInterval: 3,
+    refreshInterval: 8,
   },
   users: [
     { id: "u1", name: "Allan", email: "allan@trading.local", role: "owner", color: "from-indigo-500 to-violet-500" },

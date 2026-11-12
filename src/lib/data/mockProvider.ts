@@ -34,7 +34,18 @@ export interface MarketDataProvider {
   hasLiveCandles?(symbol: string, timeframe: Timeframe): boolean;
 }
 
-export const DEFAULT_MARKET_SYMBOLS = [
-  "BTC", "ETH", "EURUSD", "GBPUSD", "USDJPY", "GOLD", "SILVER",
-  "SPX", "NDX", "DJI", "CAC", "DAX",
-];
+/** Overview core book — labels in UI: BTC/USD, ETH/USD, XAU/USD, EUR/USD + indices. */
+export const CORE_OVERVIEW_SYMBOLS = [
+  "BTC",
+  "ETH",
+  "GOLD",
+  "EURUSD",
+  "SPX",
+  "NDX",
+  "DJI",
+  "DAX",
+  "FTSE",
+  "NIKKEI",
+] as const;
+
+export const DEFAULT_MARKET_SYMBOLS = [...CORE_OVERVIEW_SYMBOLS];

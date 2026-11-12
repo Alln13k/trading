@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <MobileNav />
       <div
         className={cn(
-          "flex min-h-screen flex-col transition-all duration-300 md:pl-56",
+          "flex min-h-screen flex-col transition-all duration-300 md:pl-60",
           collapsed && "md:pl-16"
         )}
       >

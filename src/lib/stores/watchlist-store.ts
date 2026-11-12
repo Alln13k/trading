@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Watchlist } from "@/lib/types";
 import { uid } from "@/lib/utils";
+import { CORE_OVERVIEW_SYMBOLS } from "@/lib/data/mockProvider";
 
 interface WatchlistState {
   watchlists: Watchlist[];
@@ -16,7 +17,17 @@ interface WatchlistState {
   toggleSymbolInAll: (symbol: string) => void;
 }
 
-const SEED: Watchlist[] = [];
+const SEED: Watchlist[] = [
+  {
+    id: "wl_core",
+    name: "Core",
+    description: "BTC/USD, ETH/USD, XAU/USD, EUR/USD and major indices",
+    symbols: [...CORE_OVERVIEW_SYMBOLS],
+    createdAt: 0,
+    userId: "u1",
+    userName: "Allan",
+  },
+];
 
 export const useWatchlistStore = create<WatchlistState>()(
   persist(
@@ -81,6 +92,13 @@ export const useWatchlistStore = create<WatchlistState>()(
         }
       },
     }),
-    { name: "trading-watchlists-v2" }
+    {
+      name: "trading-watchlists-v3",
+      merge: (persisted, current) => {
+        const p = persisted as Partial<WatchlistState> | undefined;
+        if (!p?.watchlists?.length) return current;
+        return { ...current, ...p };
+      },
+    }
   )
 );

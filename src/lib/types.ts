@@ -13,6 +13,8 @@ export interface SymbolMeta {
   volume: number;
 }
 
+export type DataQuality = "live" | "delayed" | "cached" | "unavailable";
+
 export interface Quote {
   symbol: string;
   price: number;
@@ -23,6 +25,8 @@ export interface Quote {
   volume: number;
   previousClose: number;
   timestamp: number;
+  quality: DataQuality;
+  source: string;
 }
 
 export interface Candle {

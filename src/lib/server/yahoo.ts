@@ -165,6 +165,8 @@ export function getQuoteFor(symbol: string): Promise<Quote> {
       volume: meta.regularMarketVolume ?? last?.volume ?? 0,
       previousClose: prev,
       timestamp: (meta.regularMarketTime ?? Date.now() / 1000) * 1000,
+      quality: "delayed",
+      source: "Yahoo Finance (unofficial chart API, delayed)",
     };
   });
 }

@@ -145,4 +145,23 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   commodities: "Commodities",
 };
 
-export const TRENDING_SYMBOLS = ["BTC", "ETH", "NVDA", "EURUSD", "GOLD", "SOL", "SPX", "TSLA"];
+export const TRENDING_SYMBOLS = ["BTC", "ETH", "GOLD", "EURUSD", "SPX", "NDX", "DJI", "DAX"];
+
+const DISPLAY: Record<string, string> = {
+  BTC: "BTC/USD",
+  ETH: "ETH/USD",
+  GOLD: "XAU/USD",
+  EURUSD: "EUR/USD",
+  GBPUSD: "GBP/USD",
+  USDJPY: "USD/JPY",
+  SPX: "S&P 500",
+  NDX: "Nasdaq 100",
+  DJI: "Dow Jones",
+  DAX: "DAX 40",
+  FTSE: "FTSE 100",
+  NIKKEI: "Nikkei 225",
+};
+
+export function displaySymbol(symbol: string): string {
+  return DISPLAY[symbol] ?? getSymbolMeta(symbol)?.name ?? symbol;
+}

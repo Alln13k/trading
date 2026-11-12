@@ -19,7 +19,7 @@ import { marketEvents } from "@/lib/data/marketEvents";
  */
 
 export class RealMarketDataProvider implements MarketDataProvider {
-  readonly name = "Live — Yahoo Finance";
+  readonly name = "Yahoo Finance (delayed, unofficial)";
   readonly isDemo = false;
 
   private quotesCache = new Map<string, Quote>();
@@ -59,7 +59,7 @@ export class RealMarketDataProvider implements MarketDataProvider {
       const map = new Map<string, Quote>();
       for (const s of symbols) {
         const cached = this.quotesCache.get(s);
-        if (cached) map.set(s, cached);
+        if (cached) map.set(s, { ...cached, quality: "cached" });
       }
       return map;
     }

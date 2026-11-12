@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeManager } from "@/components/layout/theme-manager";
@@ -14,12 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NexTrade — Your Market. Your Strategy. Your Edge.",
+  title: "Trading Terminal",
   description:
-    "A premium trading workspace for two: real-time markets, pro charts, paper trading, trade journal and portfolio analytics in one place.",
+    "Paper-only trading learning terminal for two users. Delayed Yahoo quotes when available; never presented as live.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"

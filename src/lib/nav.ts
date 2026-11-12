@@ -1,0 +1,16 @@
+export const APP_NAV = [
+  { href: "/dashboard", label: "Overview" },
+  { href: "/dashboard/markets", label: "Markets" },
+  { href: "/dashboard/charts", label: "Charts" },
+  { href: "/dashboard/analyzer", label: "Market Analyzer" },
+  { href: "/dashboard/scanner", label: "Pattern Scanner" },
+  { href: "/dashboard/encyclopedia", label: "Pattern Encyclopedia" },
+  { href: "/dashboard/strategies", label: "Strategies" },
+  { href: "/dashboard/risk", label: "Risk Calculator" },
+  { href: "/dashboard/paper", label: "Paper Trading" },
+  { href: "/dashboard/performance", label: "Performance" },
+  { href: "/dashboard/journal", label: "Trading Journal" },
+  { href: "/dashboard/academy", label: "Academy" },
+  { href: "/dashboard/duo", label: "Duo Workspace" },
+  { href: "/dashboard/settings", label: "Settings" },
+] as const;
