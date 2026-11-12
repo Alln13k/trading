@@ -1,6 +1,7 @@
 import type { Candle, Timeframe } from "@/lib/types";
+import { CHART_SCAN_RULES, scanChartPatterns, type ChartRuleId } from "@/lib/analysis/chart-patterns";
 
-export type ScanRuleId = "engulfing" | "doji" | "hammer" | "swing";
+export type ScanRuleId = "engulfing" | "doji" | "hammer" | "swing" | ChartRuleId;
 
 export interface ScanHit {
   symbol: string;
@@ -156,7 +157,7 @@ export function scanCandles(
     else if (cur.price < prev.price) pushSwing("LL", cur, prev);
   }
 
-  return hits.slice(-40);
+  return [...scanChartPatterns(symbol, timeframe, candles, s), ...hits.slice(-40)];
 }
 
 export const SCAN_RULES: Record<ScanRuleId, { label: string; method: string }> = {
@@ -176,4 +177,5 @@ export const SCAN_RULES: Record<ScanRuleId, { label: string; method: string }> =
     label: "Swing HH/HL/LH/LL",
     method: "A pivot uses N bars each side, where N is 5 at sensitivity 1 and 1 at sensitivity 5. HH/LH compare successive pivot highs. HL/LL compare successive pivot lows. A pivot with fewer right-side bars than N is listed as unconfirmed.",
   },
+  ...CHART_SCAN_RULES,
 };

@@ -8,12 +8,19 @@ import { marketData } from "@/lib/data/provider";
 import { displaySymbol } from "@/lib/data/symbols";
 import type { Timeframe } from "@/lib/types";
 import { SCAN_RULES, scanCandles, type ScanHit, type ScanRuleId } from "@/lib/analysis/scan";
+import { isChartRule } from "@/lib/analysis/chart-patterns";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 
 const SYMBOLS = [...CORE_OVERVIEW_SYMBOLS];
+
+function formatPx(n: number): string {
+  const abs = Math.abs(n);
+  const digits = abs >= 100 ? 2 : abs >= 1 ? 4 : 5;
+  return n.toFixed(digits);
+}
 
 export default function ScannerPage() {
   return (
@@ -35,8 +42,13 @@ function ScannerInner() {
     setLoading(true);
     const found: ScanHit[] = [];
     const failed: string[] = [];
-    for (const symbol of SYMBOLS) {
-      const candles = (await marketData.getCandlesAsync?.(symbol, timeframe, 180)) ?? [];
+    const loaded = await Promise.all(
+      SYMBOLS.map(async (symbol) => ({
+        symbol,
+        candles: (await marketData.getCandlesAsync?.(symbol, timeframe, 180)) ?? [],
+      }))
+    );
+    for (const { symbol, candles } of loaded) {
       if (!candles.length) {
         failed.push(symbol);
         continue;
@@ -68,7 +80,7 @@ function ScannerInner() {
         <CardHeader>
           <CardTitle>Scan the core book</CardTitle>
           <CardDescription>
-            {Object.values(SCAN_RULES).map((r) => r.method).join(" ")}
+            Candle shapes, swing marks, and multi-bar structures on the bars that loaded. Sensitivity 1 is stricter. These are candidates, not predictions.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-end gap-3">
@@ -114,7 +126,7 @@ function ScannerInner() {
       {shown && shown.length === 0 && (
         <EmptyState
           title="No candidates"
-          description={missing.length ? `No hits. Bars unavailable for ${missing.map(displaySymbol).join(", ")}.` : "The loaded bars did not match engulfing, doji, hammer, or swing rules at this sensitivity."}
+          description={missing.length ? `No hits. Bars unavailable for ${missing.map(displaySymbol).join(", ")}.` : "The loaded bars did not match the scanner rules at this sensitivity."}
         />
       )}
       {shown && shown.length > 0 && (
@@ -122,7 +134,7 @@ function ScannerInner() {
           {missing.length > 0 && (
             <p className="text-[12px] text-down">Bars unavailable: {missing.map(displaySymbol).join(", ")}. Those instruments were not scanned.</p>
           )}
-          {shown.slice(0, 60).map((h, i) => (
+          {[...shown.filter((h) => isChartRule(h.ruleId)), ...shown.filter((h) => !isChartRule(h.ruleId)).slice(0, 40)].map((h, i) => (
             <Card key={`${h.symbol}-${h.timestamp}-${h.name}-${i}`}>
               <CardHeader>
                 <CardTitle>
@@ -136,7 +148,7 @@ function ScannerInner() {
               <CardContent className="space-y-1 text-[13px] text-secondary">
                 <p>{h.explanation}</p>
                 <p>
-                  {h.priceLevels.map((p) => `${p.label} ${p.price}`).join(" · ")}
+                  {h.priceLevels.map((p) => `${p.label} ${formatPx(p.price)}`).join(" · ")}
                 </p>
                 <p className="text-[12px]">{SCAN_RULES[h.ruleId].method}</p>
               </CardContent>
